@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.BuildServices", "BuildTask\Avalonia.BuildServices.csproj", "{819EE622-6E05-411C-8185-4D5B484693A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{E97477D5-048A-42E7-A294-F3065549DD40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.BuildServices.Collector", "Avalonia.BuildServices.Collector\Avalonia.BuildServices.Collector.csproj", "{B393F300-8272-402D-8132-B206758EFA81}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E97477D5-048A-42E7-A294-F3065549DD40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E97477D5-048A-42E7-A294-F3065549DD40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{819EE622-6E05-411C-8185-4D5B484693A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{819EE622-6E05-411C-8185-4D5B484693A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{819EE622-6E05-411C-8185-4D5B484693A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{819EE622-6E05-411C-8185-4D5B484693A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B393F300-8272-402D-8132-B206758EFA81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B393F300-8272-402D-8132-B206758EFA81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B393F300-8272-402D-8132-B206758EFA81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B393F300-8272-402D-8132-B206758EFA81}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

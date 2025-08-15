@@ -1,0 +1,3 @@
+﻿CreateProcess
+CloseHandle
+CreateFile
