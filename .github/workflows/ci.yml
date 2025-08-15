@@ -1,0 +1,40 @@
+name: .NET Core Desktop
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Install Nuke
+      run: dotnet tool install Nuke.GlobalTool --global
+
+    - name: Build solution
+      # So, "dotnet build" might fail with "The process cannot access the file", no idea why,
+      # but second build attempt works fine. Probably because Avalonia.BuildServices actually runs collector task on building itself.
+      continue-on-error: true
+      run: dotnet build -c Release
+
+    - name: Run Nuke
+      run: nuke
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: Nuget package
+        path: ./BuildTask/bin/Release/*.nupkg
