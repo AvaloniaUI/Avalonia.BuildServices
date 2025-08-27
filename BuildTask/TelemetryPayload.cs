@@ -16,7 +16,8 @@ public enum Ide
     Vs,
     Vs4Mac,
     Rider,
-    Cli
+    Cli,
+    VsCode
 }
 
 public enum CiProvider
@@ -232,6 +233,12 @@ public class TelemetryPayload
         else if (environment.Contains("VisualStudioVersion"))
         {
             ide = Ide.Vs;
+        }
+        else if (environment.Contains("VSCODE_CWD") || 
+                 environment.Contains("VSCODE_PID") ||
+                 (environment.Contains("TERM_PROGRAM") && environment["TERM_PROGRAM"].ToString() == "vscode"))
+        {
+            ide = Ide.VsCode;
         }
         else if (environment.Contains("IDEA_INITIAL_DIRECTORY"))
         {
