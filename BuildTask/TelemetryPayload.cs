@@ -20,22 +20,6 @@ public enum Ide
     VsCode
 }
 
-public enum CiProvider
-{
-    None,
-    Bamboo,
-    Bitrise,
-    SpaceAutomation,
-    Jenkins,
-    AppVeyor,
-    GitLab,
-    BitBucket,
-    Travis,
-    TeamCity,
-    GitHubActions,
-    AzurePipelines
-}
-
 
 public class TelemetryPayload
 {
@@ -196,7 +180,7 @@ public class TelemetryPayload
         result.TimeStamp = DateTimeOffset.UtcNow;
         result.Machine = machine;
         result.Ide = TryDetectIde();
-        result.CiProvider = DetectCiProvider();
+        result.CiProvider = ContinuousIntegrationHelper.DetectCiProvider();
         result.OutputType = outputType;
         result.Tfm = tfm;
         result.Rid = rid;
@@ -260,66 +244,5 @@ public class TelemetryPayload
         return ide;
     }
 
-    public static CiProvider DetectCiProvider()
-    {
-        var environment = Environment.GetEnvironmentVariables();
-
-        if (environment.Contains("bamboo_planKey"))
-        {
-            return CiProvider.Bamboo;
-        }
-
-        if (environment.Contains("BITRISE_BUILD_URL"))
-        {
-            return CiProvider.Bitrise;
-        }
-        
-        if (environment.Contains("JB_SPACE_PROJECT_KEY"))
-        {
-            return CiProvider.SpaceAutomation;
-        }
-        
-        if (environment.Contains("JENKINS_HOME"))
-        {
-            return CiProvider.Jenkins;
-        }
-        
-        if (environment.Contains("APPVEYOR"))
-        {
-            return CiProvider.AppVeyor;
-        }
-        
-        if (environment.Contains("GITLAB_CI"))
-        {
-            return CiProvider.GitLab;
-        }
-        
-        if (environment.Contains("BITBUCKET_PIPELINE_UUID"))
-        {
-            return CiProvider.BitBucket;
-        }
-        
-        if (environment.Contains("TRAVIS"))
-        {
-            return CiProvider.Travis;
-        }
-        
-        if (environment.Contains("TEAMCITY_VERSION"))
-        {
-            return CiProvider.TeamCity;
-        }
-        
-        if (environment.Contains("GITHUB_ACTIONS"))
-        {
-            return CiProvider.GitHubActions;
-        }
-        
-        if (environment.Contains("TF_BUILD"))
-        {
-            return CiProvider.AzurePipelines;
-        }
-        
-
-        return CiProvider.None;
-    }
+    
 }
