@@ -20,12 +20,20 @@ public enum Ide
     VsCode
 }
 
+public enum AccelerateTier
+{
+    None,
+    Community,
+    Indie,
+    Trial,
+    Business,
+    Enterprise,
+}
 
 public class TelemetryPayload
 {
     private TelemetryPayload()
     {
-        
     }
     
     public static readonly ushort Version = 2;
@@ -55,6 +63,13 @@ public class TelemetryPayload
     public string OSDescription { get; private set; }
     
     public Architecture ProcessorArchitecture { get; private set; }
+    
+    //Additions for V2 
+    public string DeviceUniqueId { get; private set; } 
+    
+    public AccelerateTier AccelerateTier { get; private set; } 
+    
+    public string OperatingSystem { get; private set; }
 
     public static byte[] EncodeMany(IList<TelemetryPayload> payloads)
     {
@@ -104,6 +119,11 @@ public class TelemetryPayload
         writer.Write(AvaloniaMainPackageVersion  ?? string.Empty);
         writer.Write(OSDescription);
         writer.Write((byte)ProcessorArchitecture);
+        
+        //New for v2
+        writer.Write(DeviceUniqueId); 
+        writer.Write((byte)AccelerateTier);
+        writer.Write(OperatingSystem);
         return m.ToArray();
     }
 
@@ -172,7 +192,7 @@ public class TelemetryPayload
         return result;
     }
 
-    public static TelemetryPayload Initialise(Guid machine, string projectName, string tfm, string rid, string avaloniaVersion, string outputType)
+    public static TelemetryPayload Initialise(Guid machine, string projectName, string tfm, string rid, string avaloniaVersion, string outputType, AccelerateTier accelerateTier)
     {
         var result = new TelemetryPayload();
         
@@ -190,6 +210,10 @@ public class TelemetryPayload
         result.ProjectRootHash = HashProperty(projectName?.Split('.').FirstOrDefault() ?? "");
         result.ProjectHash = HashProperty(projectName);
 
+        // New for V2
+        result.DeviceUniqueId = HashProperty($"{Environment.MachineName}-{Environment.UserName}-{Environment.OSVersion.Platform}");
+        result.AccelerateTier = accelerateTier;
+        result.OperatingSystem = GetOperatingSystem();
         return result;
     }
     
@@ -244,5 +268,14 @@ public class TelemetryPayload
         return ide;
     }
 
-    
+    private static string GetOperatingSystem()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return "Windows";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            return "macOS";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return "Linux";
+        return "Unknown";
+    }
 }

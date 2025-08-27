@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.Build.Framework;
 
 namespace Avalonia.Telemetry;
@@ -28,9 +30,36 @@ public class AvaloniaStatsTask : ITask
 
     public bool Execute()
     {
-        if (Environment.GetEnvironmentVariables().Contains("AVALONIA_TELEMETRY_OPTOUT") || Environment.GetEnvironmentVariables().Contains("NCrunch"))
+        var accelerateTier = GetAccelerateTier();
+        var hasOptedOut = HasOptedOut();
+
+        switch (accelerateTier)
         {
-            return true;
+            case AccelerateTier.Community:
+                Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
+                Console.WriteLine("║  Avalonia Accelerate Community requires telemetry.         ║");
+                Console.WriteLine("║  To opt out, please upgrade to a paid tier.                ║");
+                Console.WriteLine("║  Learn more: https://avaloniaui.net/accelerate/            ║");
+                Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+                // Override opt-out
+                break;
+            
+            case AccelerateTier.Trial:
+                Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
+                Console.WriteLine("║  Avalonia Accelerate Trial requires telemetry.             ║");
+                Console.WriteLine("║  To opt out, please purchase a license.                    ║");
+                Console.WriteLine("║  Learn more: https://avaloniaui.net/accelerate/            ║");
+                Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+                // Override opt-out
+                break;
+            
+            case AccelerateTier.None:
+                // No license - respect opt-out for FOSS users
+                return true;
+            
+            default:
+                // Paid tiers (Pro, Enterprise, etc.) - respect opt-out
+                return true;
         }
 
         TelemetryPayload? telemetryData = null;
@@ -54,6 +83,97 @@ public class AvaloniaStatsTask : ITask
         StartCollector();
 
         return true;
+    }
+
+    private bool HasOptedOut()
+    {
+        return Environment.GetEnvironmentVariables().Contains("AVALONIA_TELEMETRY_OPTOUT") || Environment.GetEnvironmentVariables().Contains("NCrunch");
+    }
+
+    private AccelerateTier GetAccelerateTier()
+    {
+        try
+        {
+            // License Tickets location 
+            var ticketFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaUI", "Licensing", "Tickets", "v1");
+            
+            // If the directory doesn't exist, no licenses are present
+            if (!Directory.Exists(ticketFolder))
+            {
+                return AccelerateTier.None;
+            }
+            
+            // Get all XML files in the tickets directory
+            var ticketFiles = Directory.GetFiles(ticketFolder);
+            
+            if (ticketFiles.Length == 0)
+            {
+                return AccelerateTier.None;
+            }
+            
+            var highestValidTier = AccelerateTier.None;
+            var currentTime = DateTimeOffset.UtcNow;
+            
+            // Check each ticket file
+            foreach (var ticketFile in ticketFiles)
+            {
+                try
+                {
+                    var doc = XDocument.Load(ticketFile);
+                    var ticketElement = doc.Root;
+                    
+                    if (ticketElement == null || ticketElement.Name.LocalName != "Ticket")
+                    {
+                        continue;
+                    }
+                    
+                    // Extract tier
+                    var tierElement = ticketElement.Element("Tier");
+                    if (tierElement == null)
+                    {
+                        continue;
+                    }
+                    
+                    // Parse the tier enum value
+                    if (!Enum.TryParse<AccelerateTier>(tierElement.Value, true, out var tier))
+                    {
+                        continue;
+                    }
+                    
+                    // Check if ticket has an expiration date
+                    var expiresAtElement = ticketElement.Element("ExpiresAt");
+                    if (expiresAtElement != null)
+                    {
+                        // Try to parse the expiration date
+                        if (DateTimeOffset.TryParse(expiresAtElement.Value, out var expiresAt))
+                        {
+                            // Skip expired tickets
+                            if (expiresAt <= currentTime)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    // Update the highest valid tier found
+                    if (tier > highestValidTier)
+                    {
+                        highestValidTier = tier;
+                    }
+                }
+                catch
+                {
+                    // Skip invalid ticket files and continue checking others
+                }
+            }
+            
+            return highestValidTier;
+        }
+        catch
+        {
+            // If anything goes wrong with accessing the file system, default to None
+            return AccelerateTier.None;
+        }
     }
 
     private void WriteTelemetry(TelemetryPayload telemetryData)
@@ -127,7 +247,7 @@ public class AvaloniaStatsTask : ITask
             Directory.CreateDirectory(AppDataFolder);
         }
         
-        return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType);
+        return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType, GetAccelerateTier());
     }
 
     public IBuildEngine BuildEngine { get; set; }
