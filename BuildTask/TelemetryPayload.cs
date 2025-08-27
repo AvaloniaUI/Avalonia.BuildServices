@@ -43,7 +43,7 @@ public class TelemetryPayload
         
     }
     
-    public static readonly ushort Version = 1;
+    public static readonly ushort Version = 2;
     
     public Guid RecordId { get; private set; }
     
