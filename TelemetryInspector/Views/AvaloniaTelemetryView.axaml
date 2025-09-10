@@ -1,0 +1,136 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:TelemetryInspector.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:AvaloniaTelemetryViewModel"
+             x:Class="TelemetryInspector.Views.AvaloniaTelemetryView">
+    
+    <Design.DataContext>
+        <viewModels:AvaloniaTelemetryViewModel/>
+    </Design.DataContext>
+    
+    <Grid ColumnDefinitions="300,5,*" Margin="0, 10, 0, 0">
+        <!-- Left Panel -->
+        <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" 
+                           Text="Telemetry Files" 
+                           FontWeight="Bold" 
+                           FontSize="16"
+                           Margin="10,10,10,5"/>
+                
+                <ListBox ItemsSource="{Binding BuildTelemetryPayloads}"
+                         SelectedItem="{Binding SelectedPayload}"
+                         Margin="5">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10,8" 
+                                    CornerRadius="4">
+                                <StackPanel Spacing="3">
+                                    <TextBlock Text="{Binding TimeStamp, StringFormat='yyyy-MM-dd HH:mm:ss'}" 
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Ide}" 
+                                               FontSize="12" 
+                                               Opacity="0.7"/>
+                                    <TextBlock Text="{Binding RecordId}" 
+                                               FontSize="10" 
+                                               Opacity="0.5"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Column="1" 
+                      ResizeDirection="Columns"
+                      Background="LightGray"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"/>
+
+        <!-- Right Panel -->
+        <ScrollViewer Grid.Column="2"
+                      Padding="20"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="15">
+                <TextBlock Text="Telemetry Details" 
+                           FontWeight="Bold" 
+                           FontSize="18"
+                           IsVisible="{Binding SelectedPayload, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                
+                <TextBlock Text="Select a telemetry item to view details" 
+                           FontSize="14"
+                           Opacity="0.6"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="0,50"
+                           IsVisible="{Binding SelectedPayload, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+                <Border IsVisible="{Binding SelectedPayload, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Background="#F5F5F5"
+                        CornerRadius="8"
+                        Padding="15">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                          ColumnDefinitions="200,*">
+                        <Grid.Styles>
+                            <Style Selector="TextBlock.label">
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Margin" Value="0,5"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                            <Style Selector="TextBlock.value">
+                                <Setter Property="Margin" Value="10,5"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="TextWrapping" Value="Wrap"/>
+                            </Style>
+                        </Grid.Styles>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Record ID:"/>
+                        <SelectableTextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.RecordId}"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Timestamp:"/>
+                        <SelectableTextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.TimeStamp}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Machine ID:"/>
+                        <SelectableTextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.Machine}"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="IDE:"/>
+                        <SelectableTextBlock Grid.Row="3" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.Ide}"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="CI Provider:"/>
+                        <SelectableTextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.CiProvider}"/>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Output Type:"/>
+                        <SelectableTextBlock Grid.Row="5" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.OutputType}"/>
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="Target Framework:"/>
+                        <SelectableTextBlock Grid.Row="6" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.Tfm}"/>
+
+                        <TextBlock Grid.Row="7" Grid.Column="0" Classes="label" Text="Runtime Identifier:"/>
+                        <SelectableTextBlock Grid.Row="7" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.Rid}"/>
+
+                        <TextBlock Grid.Row="8" Grid.Column="0" Classes="label" Text="Avalonia Version:"/>
+                        <SelectableTextBlock Grid.Row="8" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.AvaloniaMainPackageVersion}"/>
+
+                        <TextBlock Grid.Row="9" Grid.Column="0" Classes="label" Text="OS Description:"/>
+                        <SelectableTextBlock Grid.Row="9" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.OSDescription}"/>
+
+                        <TextBlock Grid.Row="10" Grid.Column="0" Classes="label" Text="Processor Architecture:"/>
+                        <SelectableTextBlock Grid.Row="10" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.ProcessorArchitecture}"/>
+
+                        <TextBlock Grid.Row="11" Grid.Column="0" Classes="label" Text="Project Root Hash:"/>
+                        <SelectableTextBlock Grid.Row="11" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.ProjectRootHash}" FontFamily="Consolas,Monaco,monospace"/>
+
+                        <TextBlock Grid.Row="12" Grid.Column="0" Classes="label" Text="Project Hash:"/>
+                        <SelectableTextBlock Grid.Row="12" Grid.Column="1" Classes="value" Text="{Binding SelectedPayload.ProjectHash}" FontFamily="Consolas,Monaco,monospace"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
