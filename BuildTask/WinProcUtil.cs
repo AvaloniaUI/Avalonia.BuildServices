@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using System.Net;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -23,7 +22,7 @@ public class WinProcUtil
         };
 
         using var nullFile = PInvoke.CreateFile("NUL",
-            (FILE_ACCESS_FLAGS)0x10000000,
+            0x10000000,
             FILE_SHARE_MODE.FILE_SHARE_NONE,
             secattr,
             FILE_CREATION_DISPOSITION.OPEN_EXISTING,
@@ -40,18 +39,16 @@ public class WinProcUtil
             hStdError = new HANDLE(hNul),
         };
 
-        fixed (char* hCmdLine = cmdline)
-        {
-            if (!PInvoke.CreateProcess(exe, hCmdLine, null, null,
-                    false,
-                    PROCESS_CREATION_FLAGS.CREATE_NO_WINDOW
-                    | PROCESS_CREATION_FLAGS.CREATE_NEW_PROCESS_GROUP
-                    | PROCESS_CREATION_FLAGS.DETACHED_PROCESS,
-                    null, Directory.GetCurrentDirectory(), startupInfo, out var info))
-                throw new Win32Exception();
-            
-            PInvoke.CloseHandle(info.hProcess);
-            PInvoke.CloseHandle(info.hThread);
-        }
+        Span<char> cmdLineSpan = cmdline.ToCharArray();
+        if (!PInvoke.CreateProcess(exe, ref cmdLineSpan, null, null,
+                false,
+                PROCESS_CREATION_FLAGS.CREATE_NO_WINDOW
+                | PROCESS_CREATION_FLAGS.CREATE_NEW_PROCESS_GROUP
+                | PROCESS_CREATION_FLAGS.DETACHED_PROCESS,
+                null, Directory.GetCurrentDirectory(), startupInfo, out var info))
+            throw new Win32Exception();
+
+        PInvoke.CloseHandle(info.hProcess);
+        PInvoke.CloseHandle(info.hThread);
     }
 }

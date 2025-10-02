@@ -12,29 +12,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 8.0.x
-
-    - name: Install Nuke
-      run: dotnet tool install Nuke.GlobalTool --global
-
-    - name: Build solution
-      # So, "dotnet build" might fail with "The process cannot access the file", no idea why,
-      # but second build attempt works fine. Probably because Avalonia.BuildServices actually runs collector task on building itself.
-      continue-on-error: true
-      run: dotnet build -c Release
+        dotnet-version: 9.0.x
 
     - name: Run Nuke
-      run: nuke
+      run: dotnet run --project build/_build.csproj
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Nuget package
-        path: ./BuildTask/bin/Release/*.nupkg
+        path: ./artifacts/packages/*.nupkg

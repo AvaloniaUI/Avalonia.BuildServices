@@ -7,16 +7,13 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
+using static Avalonia.Telemetry.Common;
 
 namespace Avalonia.Telemetry;
 
 public class AvaloniaStatsTask : ITask
 {
     private Guid? _uniqueIdentifier;
-
-    internal static readonly string AppDataFolder = Common.AppDataFolder;
-
-    internal static readonly string IdPath = Common.IdPath;
 
     [Required] public string ProjectName { get; set; }
 
@@ -68,8 +65,9 @@ public class AvaloniaStatsTask : ITask
         {
             telemetryData = RunStats();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Logger.LogException(ex, "Failed to collect telemetry data.");
         }
 
         if (telemetryData == null)
@@ -182,9 +180,9 @@ public class AvaloniaStatsTask : ITask
         {
             TelemetryWriter.WriteTelemetry(telemetryData);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // All hope is lost!
+            Logger.LogException(ex, "Failed to write telemetry data.");
         }
     }
 
@@ -246,11 +244,11 @@ public class AvaloniaStatsTask : ITask
         {
             Directory.CreateDirectory(AppDataFolder);
         }
-        
+
         return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType, GetAccelerateTier());
     }
 
     public IBuildEngine BuildEngine { get; set; }
-    
+
     public ITaskHost HostObject { get; set; }
 }
