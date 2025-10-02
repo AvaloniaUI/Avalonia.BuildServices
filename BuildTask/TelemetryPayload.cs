@@ -132,7 +132,7 @@ public class TelemetryPayload
         var result = new TelemetryPayload();
         var version = reader.ReadInt16();
 
-        if (version == Version)
+        if (version is 1 or 2)
         {
             result.RecordId = new Guid(reader.ReadBytes(16));
             result.TimeStamp = DateTimeOffset.FromUnixTimeMilliseconds(reader.ReadInt64());
@@ -150,10 +150,13 @@ public class TelemetryPayload
             result.AvaloniaMainPackageVersion = reader.ReadString();
             result.OSDescription = reader.ReadString();
             result.ProcessorArchitecture = (Architecture)reader.ReadByte();
-        }
-        else
-        {
-            // Unsupported.
+
+            if (version is 2)
+            {
+                result.DeviceUniqueId = reader.ReadString();
+                result.AccelerateTier = (AccelerateTier)reader.ReadByte();
+                result.OperatingSystem = reader.ReadString();
+            }
         }
 
         return result;
