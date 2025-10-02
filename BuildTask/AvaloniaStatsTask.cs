@@ -120,6 +120,12 @@ public class AvaloniaStatsTask : ITask
                 // If we have no new folder - just move it.
                 if (!Directory.Exists(AppDataFolder))
                 {
+                    // Ensure parent directory exists before moving
+                    var appDataParent = Path.GetDirectoryName(AppDataFolder);
+                    if (!string.IsNullOrEmpty(appDataParent) && !Directory.Exists(appDataParent))
+                    {
+                        Directory.CreateDirectory(appDataParent);
+                    }
                     Directory.Move(LegacyAppDataFolder, AppDataFolder);
                 }
                 // If we have both - copy id and delete old folder.
