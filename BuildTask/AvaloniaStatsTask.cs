@@ -3,18 +3,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.Build.Framework;
+using static Avalonia.Telemetry.Common;
 
 namespace Avalonia.Telemetry;
 
 public class AvaloniaStatsTask : ITask
 {
     private Guid? _uniqueIdentifier;
-
-    internal static readonly string AppDataFolder = Common.AppDataFolder;
-
-    internal static readonly string IdPath = Common.IdPath;
 
     [Required] public string ProjectName { get; set; }
 
@@ -102,23 +98,7 @@ public class AvaloniaStatsTask : ITask
         }
     }
 
-    private Guid UniqueIdentifier
-    {
-        get
-        {
-            if (_uniqueIdentifier == null)
-            {
-                if (!File.Exists(IdPath))
-                {
-                    File.WriteAllBytes(IdPath, Guid.NewGuid().ToByteArray());
-                }
-
-                _uniqueIdentifier = new Guid(File.ReadAllBytes(IdPath));
-            }
-
-            return _uniqueIdentifier.Value;
-        }
-    }
+    private Guid UniqueIdentifier => _uniqueIdentifier ??= GetOrCreateUniqueIdentifier();
 
     private TelemetryPayload RunStats()
     {
@@ -128,6 +108,46 @@ public class AvaloniaStatsTask : ITask
         }
         
         return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType);
+    }
+
+    private Guid GetOrCreateUniqueIdentifier()
+    {
+        // Migrate legacy data if exists.
+        if (Directory.Exists(LegacyAppDataFolder))
+        {
+            try
+            {
+                // If we have no new folder - just move it.
+                if (!Directory.Exists(AppDataFolder))
+                {
+                    Directory.Move(LegacyAppDataFolder, AppDataFolder);
+                }
+                // If we have both - copy id and delete old folder.
+                else if (File.Exists(LegacyIdPath) && !File.Exists(IdPath))
+                {
+                    File.Copy(LegacyIdPath, IdPath);
+                    Directory.Delete(LegacyAppDataFolder, true);
+                }
+                // If we have both and both have id - just delete old folder.
+                else
+                {
+                    Directory.Delete(LegacyAppDataFolder, true);
+                }
+            }
+            catch
+            {
+                // Ignore any issues with migration.
+                // If we are lucky - it will succeed next time.
+            }
+        }
+
+        // Create new id if we have none.
+        if (!File.Exists(IdPath))
+        {
+            File.WriteAllBytes(IdPath, Guid.NewGuid().ToByteArray());
+        }
+
+        return new Guid(File.ReadAllBytes(IdPath));
     }
 
     public IBuildEngine BuildEngine { get; set; }
