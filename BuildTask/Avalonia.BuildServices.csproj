@@ -24,6 +24,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AvaloniaUI.Licensing" Version="2.0.999-cibuild0000103-alpha" PrivateAssets="All" />
         <PackageReference Include="System.Memory" Version="4.5.4" PrivateAssets="All"/>
         <PackageReference Include="Microsoft.Build.Framework" Version="15.1.1012" PrivateAssets="All"/>
         <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.205" PrivateAssets="All"/>
