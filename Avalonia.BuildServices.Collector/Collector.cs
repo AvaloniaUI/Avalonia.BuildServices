@@ -104,8 +104,9 @@ public class Collector
 
                         payloads.Add(payload);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Logger.LogException(ex, "Failed to read telemetry data.");
                     }
 
                     if (payloads.Count == 50)
@@ -123,9 +124,9 @@ public class Collector
                 {
                     sent = await SendAsync(payloads);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                            
+                    Logger.LogException(ex, "Failed to send telemetry data.");
                 }
 
                 if(sent)
@@ -165,8 +166,9 @@ public class Collector
 
             return response.IsSuccessStatusCode;
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
+            Logger.LogException(ex, "Failed to send telemetry data.");
         }
 
         return false;
