@@ -4,9 +4,12 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net5.0</TargetFramework>
         <LangVersion>10</LangVersion>
+        <!-- Target olders runtime -->
+        <!-- We also need "rollForward": "Major", defined in runtimeconfig.json in this repo -->
+        <CheckEolTargetFramework>false</CheckEolTargetFramework>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="../BuildTask/Common.cs" />
-        <Compile Include="../BuildTask/TelemetryPayload.cs" />
+        <Compile Include="../BuildTask/Common.cs"/>
+        <Compile Include="../BuildTask/TelemetryPayload.cs"/>
     </ItemGroup>
 </Project>
