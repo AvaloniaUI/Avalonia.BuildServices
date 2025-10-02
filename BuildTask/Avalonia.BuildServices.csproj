@@ -1,56 +1,48 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.0.31</Version>
-    <OutputType>Exe</OutputType>
-    <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <NoWarn>$(NoWarn);NU1605;CS8632</NoWarn>
-    <EnableNETAnalyzers>false</EnableNETAnalyzers>
-    <LangVersion>latest</LangVersion>
-    <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Version>0.0.31</Version>
+        <OutputType>Exe</OutputType>
+        <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <NoWarn>$(NoWarn);NU1605;NU5128;CS8632</NoWarn>
+        <EnableNETAnalyzers>false</EnableNETAnalyzers>
+        <LangVersion>latest</LangVersion>
 
-    <Authors>Avalonia Team</Authors>
-    <Copyright>Copyright 2023-$([System.DateTime]::Now.ToString(`yyyy`)) &#169; The AvaloniaUI Project</Copyright>
-    <PackageProjectUrl>https://avaloniaui.net</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageIcon>Icon.png</PackageIcon>
-    <PackageDescription>Avalonia is a cross-platform UI framework for .NET providing a flexible styling system and supporting a wide range of Operating Systems such as Windows, Linux, macOS and with experimental support for Android, iOS and WebAssembly.</PackageDescription>
-    <PackageTags>avalonia;avaloniaui;mvvm;android;ios;mac;forms;wpf;net;netstandard</PackageTags>
-  </PropertyGroup>
+        <Authors>Avalonia Team</Authors>
+        <DevelopmentDependency>true</DevelopmentDependency>
+        <Copyright>Copyright 2023-$([System.DateTime]::Now.ToString(`yyyy`)) &#169; The AvaloniaUI Project</Copyright>
+        <PackageProjectUrl>https://avaloniaui.net</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/AvaloniaUI/Avalonia.BuildServices</RepositoryUrl>
+        <PackageIcon>Icon.png</PackageIcon>
+        <PackageDescription>Avalonia is a cross-platform UI framework for .NET providing a flexible styling system and supporting a wide range of Operating Systems such as Windows, Linux, macOS and with experimental support for Android, iOS and WebAssembly.</PackageDescription>
+        <PackageTags>avalonia;avaloniaui;mvvm;msbuild;telemetry</PackageTags>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework" Version="15.1.548" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.1.647-beta">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+        <GenerateNuspecDependsOn>$(GenerateNuspecDependsOn);_AddCollectorContent</GenerateNuspecDependsOn>
+    </PropertyGroup>
 
-    <Content Include="*.props">
-      <Pack>true</Pack>
-      <PackagePath>build\;buildTransitive\</PackagePath>
-    </Content>
-    <Content Include="*.targets">
-      <Pack>true</Pack>
-      <PackagePath>build\;buildTransitive\</PackagePath>
-    </Content>
-    <Content Include="runtimeconfig.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Pack>true</Pack>
-      <PackagePath>tools\$(TargetFramework)\</PackagePath>
-    </Content>
-    <None Include="$(MSBuildThisFileDirectory)..\build\Icon.png" Pack="true" Visible="false" PackagePath=""/>
-
-    <ProjectReference Include="../Avalonia.BuildServices.Collector/Avalonia.BuildServices.Collector.csproj" ReferenceOutputAssembly="false" Private="false" OutputItemType="TelemetryCollectorAssembly" SetTargetFramework="TargetFramework=net5.0" IncludeAssets="none" ExcludeAssets="all" PrivateAssets="all" />
-  </ItemGroup>
-
-  <Target Name="IncludeCollectorAsContent" AfterTargets="ResolveProjectReferences">
     <ItemGroup>
-      <Content Include="@(TelemetryCollectorAssembly)">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <Pack>true</Pack>
-        <PackagePath>tools\$(TargetFramework)\</PackagePath>
-      </Content>
+        <PackageReference Include="System.Memory" Version="4.5.4" PrivateAssets="All"/>
+        <PackageReference Include="Microsoft.Build.Framework" Version="15.1.1012" PrivateAssets="All"/>
+        <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.205" PrivateAssets="All"/>
+
+        <None Include="$(MSBuildThisFileDirectory)..\build\Icon.png" Pack="true" Visible="false" PackagePath=""/>
+
+        <ProjectReference Include="../Avalonia.BuildServices.Collector/Avalonia.BuildServices.Collector.csproj" ReferenceOutputAssembly="false" Private="false" SetTargetFramework="TargetFramework=net5.0" IncludeAssets="none" ExcludeAssets="all" PrivateAssets="all"/>
     </ItemGroup>
-  </Target>
+
+    <Target Name="_AddCollectorContent" BeforeTargets="_GetPackageFiles">
+        <ItemGroup>
+            <Content Include="$(MSBuildThisFileDirectory)../Avalonia.BuildServices.Collector/bin/$(Configuration)/net5.0/*.dll" PackagePath="tools/$(TargetFramework)"/>
+            <Content Include="runtimeconfig.json">
+                <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+                <Pack>true</Pack>
+                <PackagePath>tools\$(TargetFramework)\</PackagePath>
+            </Content>
+            <Content Include="*.props" PackagePath="build;buildTransitive"/>
+            <Content Include="*.targets" PackagePath="build;buildTransitive"/>
+        </ItemGroup>
+    </Target>
 </Project>
