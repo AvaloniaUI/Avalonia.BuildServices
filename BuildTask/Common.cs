@@ -28,7 +28,7 @@ internal static class Common
             if (_appDataFolder is null)
             {
                 _appDataFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaUI", "BuildServices");
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create), "AvaloniaUI", "BuildServices");
 
                 // Migrate legacy data if exists.
                 if (Directory.Exists(LegacyAppDataFolder))
