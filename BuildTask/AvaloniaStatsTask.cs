@@ -98,7 +98,23 @@ public class AvaloniaStatsTask : ITask
         }
     }
 
-    private Guid UniqueIdentifier => _uniqueIdentifier ??= GetOrCreateUniqueIdentifier();
+    private Guid UniqueIdentifier
+    {
+        get
+        {
+            if (_uniqueIdentifier == null)
+            {
+                if (!File.Exists(IdPath))
+                {
+                    File.WriteAllBytes(IdPath, Guid.NewGuid().ToByteArray());
+                }
+
+                _uniqueIdentifier = new Guid(File.ReadAllBytes(IdPath));
+            }
+
+            return _uniqueIdentifier.Value;
+        }
+    }
 
     private TelemetryPayload RunStats()
     {
@@ -106,62 +122,11 @@ public class AvaloniaStatsTask : ITask
         {
             Directory.CreateDirectory(AppDataFolder);
         }
-        
+
         return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType);
     }
 
-    private Guid GetOrCreateUniqueIdentifier()
-    {
-        // Migrate legacy data if exists.
-        if (Directory.Exists(LegacyAppDataFolder))
-        {
-            try
-            {
-                // If we have no new folder - just move it.
-                if (!Directory.Exists(AppDataFolder))
-                {
-                    // Ensure parent directory exists before moving
-                    var appDataParent = Path.GetDirectoryName(AppDataFolder);
-                    if (!string.IsNullOrEmpty(appDataParent) && !Directory.Exists(appDataParent))
-                    {
-                        Directory.CreateDirectory(appDataParent);
-                    }
-                    Directory.Move(LegacyAppDataFolder, AppDataFolder);
-                }
-                // If we have both - copy id and delete old folder.
-                else if (File.Exists(LegacyIdPath) && !File.Exists(IdPath))
-                {
-                    File.Copy(LegacyIdPath, IdPath);
-                    Directory.Delete(LegacyAppDataFolder, true);
-                }
-                // If we have both and both have id - just delete old folder.
-                else
-                {
-                    Directory.Delete(LegacyAppDataFolder, true);
-                }
-            }
-            catch
-            {
-                // Ignore any issues with migration.
-                // If we are lucky - it will succeed next time.
-            }
-        }
-
-        // Create new id if we have none.
-        if (!File.Exists(IdPath))
-        {
-            var idDirectory = Path.GetDirectoryName(IdPath);
-            if (!string.IsNullOrEmpty(idDirectory) && !Directory.Exists(idDirectory))
-            {
-                Directory.CreateDirectory(idDirectory);
-            }
-            File.WriteAllBytes(IdPath, Guid.NewGuid().ToByteArray());
-        }
-
-        return new Guid(File.ReadAllBytes(IdPath));
-    }
-
     public IBuildEngine BuildEngine { get; set; }
-    
+
     public ITaskHost HostObject { get; set; }
 }
