@@ -35,8 +35,9 @@ public class AvaloniaStatsTask : ITask
         {
             telemetryData = RunStats();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Logger.LogException(ex, "Failed to collect telemetry data.");
         }
 
         if (telemetryData == null)
@@ -58,9 +59,9 @@ public class AvaloniaStatsTask : ITask
         {
             TelemetryWriter.WriteTelemetry(telemetryData);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // All hope is lost!
+            Logger.LogException(ex, "Failed to write telemetry data.");
         }
     }
 

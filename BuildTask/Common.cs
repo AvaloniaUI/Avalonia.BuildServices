@@ -14,6 +14,12 @@ internal static class Common
     public const string RECORD_FILE_PREFIX = "avalonia_build";
 
     internal static string IdPath => Path.Combine(AppDataFolder, "id");
+    internal static string ExceptionsLogPath => Path.Combine(AppDataFolder,
+#if AVALONIAUI_COLLECTOR
+        "collector.log");
+#else
+        "buildtasks.log");
+#endif
 
     internal static string AppDataFolder
     {
