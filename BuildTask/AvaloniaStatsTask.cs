@@ -144,6 +144,11 @@ public class AvaloniaStatsTask : ITask
         // Create new id if we have none.
         if (!File.Exists(IdPath))
         {
+            var idDirectory = Path.GetDirectoryName(IdPath);
+            if (!string.IsNullOrEmpty(idDirectory) && !Directory.Exists(idDirectory))
+            {
+                Directory.CreateDirectory(idDirectory);
+            }
             File.WriteAllBytes(IdPath, Guid.NewGuid().ToByteArray());
         }
 
