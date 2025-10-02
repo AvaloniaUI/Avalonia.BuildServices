@@ -3,18 +3,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.Build.Framework;
+using static Avalonia.Telemetry.Common;
 
 namespace Avalonia.Telemetry;
 
 public class AvaloniaStatsTask : ITask
 {
     private Guid? _uniqueIdentifier;
-
-    internal static readonly string AppDataFolder = Common.AppDataFolder;
-
-    internal static readonly string IdPath = Common.IdPath;
 
     [Required] public string ProjectName { get; set; }
 
@@ -126,11 +122,11 @@ public class AvaloniaStatsTask : ITask
         {
             Directory.CreateDirectory(AppDataFolder);
         }
-        
+
         return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType);
     }
 
     public IBuildEngine BuildEngine { get; set; }
-    
+
     public ITaskHost HostObject { get; set; }
 }
