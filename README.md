@@ -1,5 +1,4 @@
 # Avalonia Telemetry
-This repository contains the source code for Avalonia’s anonymous telemetry system, introduced in 11.0.0-preview 7.
 
 ## Overview
 Avalonia collects anonymous build-time usage data to understand how the framework is used and to focus development where it delivers the most value. This information guides our priorities, ensures we invest in the right features, and helps maintain a stable, performant ecosystem.

@@ -11,6 +11,7 @@
         <LangVersion>latest</LangVersion>
 
         <Authors>Avalonia Team</Authors>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <DevelopmentDependency>true</DevelopmentDependency>
         <Copyright>Copyright 2023-$([System.DateTime]::Now.ToString(`yyyy`)) &#169; The AvaloniaUI Project</Copyright>
         <PackageProjectUrl>https://avaloniaui.net</PackageProjectUrl>
@@ -30,6 +31,7 @@
         <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.205" PrivateAssets="All"/>
 
         <None Include="$(MSBuildThisFileDirectory)..\build\Icon.png" Pack="true" Visible="false" PackagePath=""/>
+        <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" Visible="false" PackagePath=""/>
 
         <ProjectReference Include="../Avalonia.BuildServices.Collector/Avalonia.BuildServices.Collector.csproj" ReferenceOutputAssembly="false" Private="false" SetTargetFramework="TargetFramework=net5.0" IncludeAssets="none" ExcludeAssets="all" PrivateAssets="all"/>
     </ItemGroup>
