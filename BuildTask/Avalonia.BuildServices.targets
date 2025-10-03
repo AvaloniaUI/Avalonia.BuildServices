@@ -11,6 +11,7 @@
                 TargetFramework="$(TargetFramework)"
                 RuntimeIdentifier="$(RuntimeIdentifier)"
                 AvaloniaPackageVersion="$(AvaloniaMainPackageVersion)"
+                LicenseKeys="@(AvaloniaUILicenseKey)"
                 OutputType="$(OutputType)"
         />
     </Target>

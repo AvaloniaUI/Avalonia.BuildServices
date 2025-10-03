@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.cspr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.BuildServices.Collector", "Avalonia.BuildServices.Collector\Avalonia.BuildServices.Collector.csproj", "{B393F300-8272-402D-8132-B206758EFA81}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryInspector", "TelemetryInspector\TelemetryInspector.csproj", "{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,5 +30,9 @@ Global
 		{B393F300-8272-402D-8132-B206758EFA81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B393F300-8272-402D-8132-B206758EFA81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B393F300-8272-402D-8132-B206758EFA81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

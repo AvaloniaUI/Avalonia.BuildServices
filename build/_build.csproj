@@ -14,6 +14,7 @@
     <ItemGroup>
         <PackageReference Include="Nuke.Common" Version="9.0.4"/>
         <PackageReference Include="Mono.Cecil" Version="0.11.6"/>
+    	<PackageDownload Include="dotnet-ilrepack" Version="[2.0.44]"/>
     </ItemGroup>
 
 </Project>

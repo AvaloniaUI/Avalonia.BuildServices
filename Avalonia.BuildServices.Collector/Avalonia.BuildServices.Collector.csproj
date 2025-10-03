@@ -13,5 +13,6 @@
         <Compile Include="../BuildTask/Common.cs"/>
         <Compile Include="../BuildTask/Logger.cs"/>
         <Compile Include="../BuildTask/TelemetryPayload.cs"/>
+        <Compile Include="../BuildTask/ContinuousIntegrationHelper.cs"/>
     </ItemGroup>
 </Project>

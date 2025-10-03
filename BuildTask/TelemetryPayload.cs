@@ -16,34 +16,27 @@ public enum Ide
     Vs,
     Vs4Mac,
     Rider,
-    Cli
+    Cli,
+    VsCode
 }
 
-public enum CiProvider
+public enum AccelerateTier
 {
     None,
-    Bamboo,
-    Bitrise,
-    SpaceAutomation,
-    Jenkins,
-    AppVeyor,
-    GitLab,
-    BitBucket,
-    Travis,
-    TeamCity,
-    GitHubActions,
-    AzurePipelines
+    Community,
+    Indie,
+    Trial,
+    Business,
+    Enterprise,
 }
-
 
 public class TelemetryPayload
 {
     private TelemetryPayload()
     {
-        
     }
     
-    public static readonly ushort Version = 1;
+    public static readonly ushort Version = 2;
     
     public Guid RecordId { get; private set; }
     
@@ -70,6 +63,13 @@ public class TelemetryPayload
     public string OSDescription { get; private set; }
     
     public Architecture ProcessorArchitecture { get; private set; }
+    
+    //Additions for V2 
+    public string DeviceUniqueId { get; private set; } 
+    
+    public AccelerateTier AccelerateTier { get; private set; } 
+    
+    public string OperatingSystem { get; private set; }
 
     public static byte[] EncodeMany(IList<TelemetryPayload> payloads)
     {
@@ -119,6 +119,11 @@ public class TelemetryPayload
         writer.Write(AvaloniaMainPackageVersion  ?? string.Empty);
         writer.Write(OSDescription);
         writer.Write((byte)ProcessorArchitecture);
+        
+        //New for v2
+        writer.Write(DeviceUniqueId); 
+        writer.Write((byte)AccelerateTier);
+        writer.Write(OperatingSystem);
         return m.ToArray();
     }
 
@@ -127,7 +132,7 @@ public class TelemetryPayload
         var result = new TelemetryPayload();
         var version = reader.ReadInt16();
 
-        if (version == Version)
+        if (version is 1 or 2)
         {
             result.RecordId = new Guid(reader.ReadBytes(16));
             result.TimeStamp = DateTimeOffset.FromUnixTimeMilliseconds(reader.ReadInt64());
@@ -145,10 +150,18 @@ public class TelemetryPayload
             result.AvaloniaMainPackageVersion = reader.ReadString();
             result.OSDescription = reader.ReadString();
             result.ProcessorArchitecture = (Architecture)reader.ReadByte();
-        }
-        else
-        {
-            // Unsupported.
+
+            if (version is 2)
+            {
+                result.DeviceUniqueId = reader.ReadString();
+                result.AccelerateTier = (AccelerateTier)reader.ReadByte();
+                result.OperatingSystem = reader.ReadString();
+            }
+            else if (version is 1)
+            {
+                result.DeviceUniqueId = "";
+                result.OperatingSystem = "Unknown";
+            }
         }
 
         return result;
@@ -187,7 +200,7 @@ public class TelemetryPayload
         return result;
     }
 
-    public static TelemetryPayload Initialise(Guid machine, string projectName, string tfm, string rid, string avaloniaVersion, string outputType)
+    public static TelemetryPayload Initialise(Guid machine, string projectName, string tfm, string rid, string avaloniaVersion, string outputType, AccelerateTier accelerateTier)
     {
         var result = new TelemetryPayload();
         
@@ -195,7 +208,7 @@ public class TelemetryPayload
         result.TimeStamp = DateTimeOffset.UtcNow;
         result.Machine = machine;
         result.Ide = TryDetectIde();
-        result.CiProvider = DetectCiProvider();
+        result.CiProvider = ContinuousIntegrationHelper.DetectCiProvider();
         result.OutputType = outputType;
         result.Tfm = tfm;
         result.Rid = rid;
@@ -205,6 +218,10 @@ public class TelemetryPayload
         result.ProjectRootHash = HashProperty(projectName?.Split('.').FirstOrDefault() ?? "");
         result.ProjectHash = HashProperty(projectName);
 
+        // New for V2
+        result.DeviceUniqueId = HashProperty($"{Environment.MachineName}-{Environment.UserName}-{Environment.OSVersion.Platform}");
+        result.AccelerateTier = accelerateTier;
+        result.OperatingSystem = GetOperatingSystem();
         return result;
     }
     
@@ -233,6 +250,12 @@ public class TelemetryPayload
         {
             ide = Ide.Vs;
         }
+        else if (environment.Contains("VSCODE_CWD") || 
+                 environment.Contains("VSCODE_PID") ||
+                 (environment.Contains("TERM_PROGRAM") && environment["TERM_PROGRAM"].ToString() == "vscode"))
+        {
+            ide = Ide.VsCode;
+        }
         else if (environment.Contains("IDEA_INITIAL_DIRECTORY"))
         {
             ide = Ide.Rider;
@@ -253,66 +276,14 @@ public class TelemetryPayload
         return ide;
     }
 
-    public static CiProvider DetectCiProvider()
+    private static string GetOperatingSystem()
     {
-        var environment = Environment.GetEnvironmentVariables();
-
-        if (environment.Contains("bamboo_planKey"))
-        {
-            return CiProvider.Bamboo;
-        }
-
-        if (environment.Contains("BITRISE_BUILD_URL"))
-        {
-            return CiProvider.Bitrise;
-        }
-        
-        if (environment.Contains("JB_SPACE_PROJECT_KEY"))
-        {
-            return CiProvider.SpaceAutomation;
-        }
-        
-        if (environment.Contains("JENKINS_HOME"))
-        {
-            return CiProvider.Jenkins;
-        }
-        
-        if (environment.Contains("APPVEYOR"))
-        {
-            return CiProvider.AppVeyor;
-        }
-        
-        if (environment.Contains("GITLAB_CI"))
-        {
-            return CiProvider.GitLab;
-        }
-        
-        if (environment.Contains("BITBUCKET_PIPELINE_UUID"))
-        {
-            return CiProvider.BitBucket;
-        }
-        
-        if (environment.Contains("TRAVIS"))
-        {
-            return CiProvider.Travis;
-        }
-        
-        if (environment.Contains("TEAMCITY_VERSION"))
-        {
-            return CiProvider.TeamCity;
-        }
-        
-        if (environment.Contains("GITHUB_ACTIONS"))
-        {
-            return CiProvider.GitHubActions;
-        }
-        
-        if (environment.Contains("TF_BUILD"))
-        {
-            return CiProvider.AzurePipelines;
-        }
-        
-
-        return CiProvider.None;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return "Windows";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            return "macOS";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return "Linux";
+        return "Unknown";
     }
 }

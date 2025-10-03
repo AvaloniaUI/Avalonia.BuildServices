@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using static Avalonia.Telemetry.Common;
 
@@ -19,21 +22,54 @@ public class AvaloniaStatsTask : ITask
     public string RuntimeIdentifier { get; set; }
     
     public string AvaloniaPackageVersion { get; set; }
-    
+
+    public ITaskItem[] LicenseKeys { get; set; } = [];
+
     [Required] public string OutputType { get; set; }
 
     public bool Execute()
     {
-        if (Environment.GetEnvironmentVariables().Contains("AVALONIA_TELEMETRY_OPTOUT") || Environment.GetEnvironmentVariables().Contains("NCrunch"))
+        var accelerateTier = AccelerateTierHelper.ResolveAccelerateTierFromLicenseTickets(LicenseKeys?.Select(k => k.ItemSpec));
+        var hasOptedOut = HasOptedOut();
+
+        switch (accelerateTier)
         {
-            return true;
+            case AccelerateTier.Community:
+                Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
+                Console.WriteLine("║  Avalonia Accelerate Community requires telemetry.         ║");
+                Console.WriteLine("║  To opt out, please upgrade to a paid tier.                ║");
+                Console.WriteLine("║  Learn more: https://avaloniaui.net/accelerate/            ║");
+                Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+                // Override opt-out
+                break;
+            
+            case AccelerateTier.Trial:
+                Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
+                Console.WriteLine("║  Avalonia Accelerate Trial requires telemetry.             ║");
+                Console.WriteLine("║  To opt out, please purchase a license.                    ║");
+                Console.WriteLine("║  Learn more: https://avaloniaui.net/accelerate/            ║");
+                Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+                // Override opt-out
+                break;
+            
+            case AccelerateTier.None:
+                // No license - respect opt-out for FOSS users
+                if (hasOptedOut)
+                    return true;
+                break;
+            
+            default:
+                // Paid tiers (Pro, Enterprise, etc.) - respect opt-out
+                if (hasOptedOut)
+                    return true;
+                break;
         }
 
         TelemetryPayload? telemetryData = null;
         
         try
         {
-            telemetryData = RunStats();
+            telemetryData = RunStats(accelerateTier);
         }
         catch (Exception ex)
         {
@@ -51,6 +87,11 @@ public class AvaloniaStatsTask : ITask
         StartCollector();
 
         return true;
+    }
+
+    private bool HasOptedOut()
+    {
+        return Environment.GetEnvironmentVariables().Contains("AVALONIA_TELEMETRY_OPTOUT") || Environment.GetEnvironmentVariables().Contains("NCrunch");
     }
 
     private void WriteTelemetry(TelemetryPayload telemetryData)
@@ -117,14 +158,14 @@ public class AvaloniaStatsTask : ITask
         }
     }
 
-    private TelemetryPayload RunStats()
+    private TelemetryPayload RunStats(AccelerateTier accelerateTier)
     {
         if (!Directory.Exists(AppDataFolder))
         {
             Directory.CreateDirectory(AppDataFolder);
         }
 
-        return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType);
+        return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType, accelerateTier);
     }
 
     public IBuildEngine BuildEngine { get; set; }
