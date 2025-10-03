@@ -157,6 +157,11 @@ public class TelemetryPayload
                 result.AccelerateTier = (AccelerateTier)reader.ReadByte();
                 result.OperatingSystem = reader.ReadString();
             }
+            else if (version is 1)
+            {
+                result.DeviceUniqueId = "";
+                result.OperatingSystem = "Unknown";
+            }
         }
 
         return result;
