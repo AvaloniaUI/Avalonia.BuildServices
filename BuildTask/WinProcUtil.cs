@@ -39,7 +39,7 @@ public class WinProcUtil
             hStdError = new HANDLE(hNul),
         };
 
-        Span<char> cmdLineSpan = cmdline.ToCharArray();
+        Span<char> cmdLineSpan = (cmdline + '\0').ToCharArray();
         if (!PInvoke.CreateProcess(exe, ref cmdLineSpan, null, null,
                 false,
                 PROCESS_CREATION_FLAGS.CREATE_NO_WINDOW
