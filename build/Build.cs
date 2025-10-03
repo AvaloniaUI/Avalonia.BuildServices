@@ -14,6 +14,8 @@ class Build : NukeBuild
     [Parameter]
     readonly AbsolutePath Output = RootDirectory / "artifacts" / "packages";
 
+    [NuGetPackage("dotnet-ilrepack", "ILRepackTool.dll", Framework = "net8.0")] readonly Tool IlRepackTool;
+
     AbsolutePath BuildServicesProject => RootDirectory / "BuildTask" / "Avalonia.BuildServices.csproj";
 
     public static int Main () => Execute<Build>(x => x.CreatePackage);
@@ -42,10 +44,24 @@ class Build : NukeBuild
                 .SetVersion(GetVersion()));
         });
 
+    Target MergeLicensing => _ => _
+        .DependsOn(RunBuild)
+        .Executes(() =>
+        {
+            var outputDir = BuildServicesProject.Parent / "bin" / Configuration / "netstandard2.0";
+            var buildServicesDll = outputDir / "Avalonia.BuildServices.dll";
+            var licensingDll = outputDir / "AvaloniaUI.Licensing.dll";
+
+            IlRepackTool.Invoke(
+                $"""/internalize /parallel /ndebug /out:"{buildServicesDll}" "{buildServicesDll}" {licensingDll} """,
+                outputDir);
+        });
+
     Target CreatePackage => _ => _
         .DependsOn(OutputParameters)
         .DependsOn(CleanArtifacts)
         .DependsOn(RunBuild)
+        .DependsOn(MergeLicensing)
         .Executes(() =>
         {
             DotNetTasks.DotNetPack(settings => settings

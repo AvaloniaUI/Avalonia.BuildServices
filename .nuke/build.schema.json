@@ -26,6 +26,7 @@
       "enum": [
         "CleanArtifacts",
         "CreatePackage",
+        "MergeLicensing",
         "OutputParameters",
         "RunBuild"
       ]

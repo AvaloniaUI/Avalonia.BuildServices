@@ -22,12 +22,14 @@ public class AvaloniaStatsTask : ITask
     public string RuntimeIdentifier { get; set; }
     
     public string AvaloniaPackageVersion { get; set; }
-    
+
+    public ITaskItem[] LicenseKeys { get; set; } = [];
+
     [Required] public string OutputType { get; set; }
 
     public bool Execute()
     {
-        var accelerateTier = GetAccelerateTier();
+        var accelerateTier = AccelerateTierHelper.ResolveAccelerateTierFromLicenseTickets(LicenseKeys?.Select(k => k.ItemSpec));
         var hasOptedOut = HasOptedOut();
 
         switch (accelerateTier)
@@ -52,18 +54,22 @@ public class AvaloniaStatsTask : ITask
             
             case AccelerateTier.None:
                 // No license - respect opt-out for FOSS users
-                return true;
+                if (hasOptedOut)
+                    return true;
+                break;
             
             default:
                 // Paid tiers (Pro, Enterprise, etc.) - respect opt-out
-                return true;
+                if (hasOptedOut)
+                    return true;
+                break;
         }
 
         TelemetryPayload? telemetryData = null;
         
         try
         {
-            telemetryData = RunStats();
+            telemetryData = RunStats(accelerateTier);
         }
         catch (Exception ex)
         {
@@ -86,92 +92,6 @@ public class AvaloniaStatsTask : ITask
     private bool HasOptedOut()
     {
         return Environment.GetEnvironmentVariables().Contains("AVALONIA_TELEMETRY_OPTOUT") || Environment.GetEnvironmentVariables().Contains("NCrunch");
-    }
-
-    private AccelerateTier GetAccelerateTier()
-    {
-        try
-        {
-            // License Tickets location 
-            var ticketFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaUI", "Licensing", "Tickets", "v1");
-            
-            // If the directory doesn't exist, no licenses are present
-            if (!Directory.Exists(ticketFolder))
-            {
-                return AccelerateTier.None;
-            }
-            
-            // Get all XML files in the tickets directory
-            var ticketFiles = Directory.GetFiles(ticketFolder);
-            
-            if (ticketFiles.Length == 0)
-            {
-                return AccelerateTier.None;
-            }
-            
-            var highestValidTier = AccelerateTier.None;
-            var currentTime = DateTimeOffset.UtcNow;
-            
-            // Check each ticket file
-            foreach (var ticketFile in ticketFiles)
-            {
-                try
-                {
-                    var doc = XDocument.Load(ticketFile);
-                    var ticketElement = doc.Root;
-                    
-                    if (ticketElement == null || ticketElement.Name.LocalName != "Ticket")
-                    {
-                        continue;
-                    }
-                    
-                    // Extract tier
-                    var tierElement = ticketElement.Element("Tier");
-                    if (tierElement == null)
-                    {
-                        continue;
-                    }
-                    
-                    // Parse the tier enum value
-                    if (!Enum.TryParse<AccelerateTier>(tierElement.Value, true, out var tier))
-                    {
-                        continue;
-                    }
-                    
-                    // Check if ticket has an expiration date
-                    var expiresAtElement = ticketElement.Element("ExpiresAt");
-                    if (expiresAtElement != null)
-                    {
-                        // Try to parse the expiration date
-                        if (DateTimeOffset.TryParse(expiresAtElement.Value, out var expiresAt))
-                        {
-                            // Skip expired tickets
-                            if (expiresAt <= currentTime)
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                    
-                    // Update the highest valid tier found
-                    if (tier > highestValidTier)
-                    {
-                        highestValidTier = tier;
-                    }
-                }
-                catch
-                {
-                    // Skip invalid ticket files and continue checking others
-                }
-            }
-            
-            return highestValidTier;
-        }
-        catch
-        {
-            // If anything goes wrong with accessing the file system, default to None
-            return AccelerateTier.None;
-        }
     }
 
     private void WriteTelemetry(TelemetryPayload telemetryData)
@@ -238,14 +158,14 @@ public class AvaloniaStatsTask : ITask
         }
     }
 
-    private TelemetryPayload RunStats()
+    private TelemetryPayload RunStats(AccelerateTier accelerateTier)
     {
         if (!Directory.Exists(AppDataFolder))
         {
             Directory.CreateDirectory(AppDataFolder);
         }
 
-        return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType, GetAccelerateTier());
+        return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType, accelerateTier);
     }
 
     public IBuildEngine BuildEngine { get; set; }
