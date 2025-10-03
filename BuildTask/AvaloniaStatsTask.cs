@@ -84,7 +84,14 @@ public class AvaloniaStatsTask : ITask
 
         WriteTelemetry(telemetryData);
 
-        StartCollector();
+        try
+        {
+            StartCollector();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogException(ex, "Failed to start telemetry collector.");
+        }
 
         return true;
     }
