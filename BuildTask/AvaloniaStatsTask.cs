@@ -35,31 +35,23 @@ public class AvaloniaStatsTask : ITask
         switch (accelerateTier)
         {
             case AccelerateTier.Community:
-                Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
-                Console.WriteLine("║  Avalonia Accelerate Community requires telemetry.         ║");
-                Console.WriteLine("║  To opt out, please upgrade to a paid tier.                ║");
-                Console.WriteLine("║  Learn more: https://avaloniaui.net/accelerate/            ║");
-                Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+                BuildEngine?.LogMessageEvent(new BuildMessageEventArgs(
+                    "Avalonia Accelerate Community requires telemetry. " +
+                    "To opt out, please upgrade to a paid tier. Learn more: https://avaloniaui.net/accelerate/", "", "AvaloniaStatsTask",
+                    MessageImportance.High));
                 // Override opt-out
                 break;
             
             case AccelerateTier.Trial:
-                Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
-                Console.WriteLine("║  Avalonia Accelerate Trial requires telemetry.             ║");
-                Console.WriteLine("║  To opt out, please purchase a license.                    ║");
-                Console.WriteLine("║  Learn more: https://avaloniaui.net/accelerate/            ║");
-                Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+                BuildEngine?.LogMessageEvent(new BuildMessageEventArgs(
+                    "Avalonia Accelerate Trial requires telemetry. " +
+                    "To opt out, please purchase a license. Learn more: https://avaloniaui.net/accelerate/", "", "AvaloniaStatsTask",
+                    MessageImportance.High));
                 // Override opt-out
                 break;
             
-            case AccelerateTier.None:
-                // No license - respect opt-out for FOSS users
-                if (hasOptedOut)
-                    return true;
-                break;
-            
             default:
-                // Paid tiers (Pro, Enterprise, etc.) - respect opt-out
+                // No license - respect opt-out for FOSS users
                 if (hasOptedOut)
                     return true;
                 break;
