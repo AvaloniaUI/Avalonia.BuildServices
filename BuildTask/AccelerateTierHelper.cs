@@ -36,21 +36,18 @@ public static class AccelerateTierHelper
             {
                 var licenseInformation = AvaloniaLicenseInformation.Load(licenseKey);
 
-                var tierStr = licenseInformation.Products
+                var tiers = licenseInformation.Products
                     .Select(p => p.Name)
-                    .FirstOrDefault(p => p?.StartsWith("product:") == true)?
-                    .Split(':')
-                    .Last();
-
-                var tier = tierStr switch
-                {
-                    "indie" => AccelerateTier.Indie,
-                    "business" => AccelerateTier.Business,
-                    "enterprise" => AccelerateTier.Enterprise,
-                    "community" => AccelerateTier.Community,
-                    "trial" => AccelerateTier.Trial,
-                    _ => AccelerateTier.None
-                };
+                    .Where(p => p?.StartsWith("product:") == true)
+                    .Select(p => p.Split(':').Last() switch
+                    {
+                        "indie" => AccelerateTier.Indie,
+                        "business" => AccelerateTier.Business,
+                        "enterprise" => AccelerateTier.Enterprise,
+                        "community" => AccelerateTier.Community,
+                        "trial" => AccelerateTier.Trial,
+                        _ => AccelerateTier.None
+                    });
 
                 // Skip expired tickets
                 if (licenseInformation.ExpiresAt is { } expiresAt)
@@ -62,9 +59,12 @@ public static class AccelerateTierHelper
                 }
 
                 // Update the highest valid tier found
-                if (tier > highestValidTier)
+                foreach (var accelerateTier in tiers)
                 {
-                    highestValidTier = tier;
+                    if (accelerateTier > highestValidTier)
+                    {
+                        highestValidTier = accelerateTier;
+                    }
                 }
             }
             catch
