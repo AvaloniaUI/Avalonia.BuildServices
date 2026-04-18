@@ -3,9 +3,11 @@
 This repository implements **build-time telemetry collection and
 transmission** for Avalonia. It runs inside MSBuild on developer and CI
 machines, gathers anonymised metadata about the build, and sends it to
-the Avalonia backend. It does **not** store data, expose HTTP APIs,
-manage user accounts, or host user-facing services. Ignore generalised
-GDPR guidance that applies to those concerns.
+the Avalonia backend. It does **not** provide server-side telemetry
+storage and only persists telemetry locally and temporarily as needed
+for delivery; it does not expose HTTP APIs, manage user accounts, or
+host user-facing services. Ignore generalised GDPR guidance that
+applies to those concerns.
 
 AvaloniaUI OÜ is an **Estonian controller**. Our lead supervisory
 authority is the **Estonian Data Protection Inspectorate (Andmekaitse
