@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Avalonia.Telemetry;
 
@@ -196,27 +194,16 @@ public class TelemetryPayload
         result.AvaloniaMainPackageVersion = avaloniaVersion;
         result.OSDescription = RuntimeInformation.OSDescription;
         result.ProcessorArchitecture = RuntimeInformation.ProcessArchitecture;
-        result.ProjectRootHash = HashProperty(projectName?.Split('.').FirstOrDefault() ?? "");
-        result.ProjectHash = HashProperty(projectName);
+        result.ProjectRootHash = HashUtils.Sha256Hex(projectName?.Split('.').FirstOrDefault() ?? "");
+        result.ProjectHash = HashUtils.Sha256Hex(projectName);
 
         // New for V2
-        result.DeviceUniqueId = HashProperty($"{Environment.MachineName}-{Environment.UserName}-{Environment.OSVersion.Platform}");
+        result.DeviceUniqueId = HashUtils.Sha256Hex($"{Environment.MachineName}-{Environment.UserName}-{Environment.OSVersion.Platform}");
         result.AccelerateTier = accelerateTier;
         result.OperatingSystem = GetOperatingSystem();
         return result;
     }
-    
-    internal static string HashProperty(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-            return string.Empty;
 
-        using var sha = SHA256.Create();
-        byte[] textData = Encoding.UTF8.GetBytes(value);
-        byte[] hash = sha.ComputeHash(textData);
-        return BitConverter.ToString(hash).Replace("-", string.Empty);
-    }
-    
     private static Ide TryDetectIde()
     {
         var environment = Environment.GetEnvironmentVariables();
