@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFrameworks>netstandard2.0;net48;net8.0</TargetFrameworks>
         <Version>11.3.2</Version>
         <LangVersion>latest</LangVersion>
         <IsPackable>true</IsPackable>
@@ -17,6 +17,12 @@
         <PackageTags>avalonia;avaloniaui;telemetry;protocol;contract</PackageTags>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <WarningsAsErrors Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">$(WarningsAsErrors);nullable</WarningsAsErrors>
+        <NoWarn Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">$(NoWarn);nullable</NoWarn>
+    </PropertyGroup>
+    
     <ItemGroup>
         <None Include="$(MSBuildThisFileDirectory)..\build\Icon.png" Pack="true" Visible="false" PackagePath=""/>
         <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" Visible="false" PackagePath=""/>

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -10,6 +8,9 @@ using System.Text;
 
 namespace Avalonia.Telemetry;
 
+/// <summary>
+/// Avalonia Build event telemetry payload.
+/// </summary>
 public class TelemetryPayload
 {
     private TelemetryPayload()
@@ -24,32 +25,32 @@ public class TelemetryPayload
     
     public Guid Machine { get; private set; }
     
-    public string ProjectRootHash { get; private set; }
+    public string? ProjectRootHash { get; private set; }
     
-    public string ProjectHash { get; private  set; }
+    public string? ProjectHash { get; private  set; }
     
     public Ide Ide { get; private set; }
     
     public CiProvider CiProvider { get; private set; }
     
-    public string OutputType { get; set; }
+    public string? OutputType { get; set; }
     
-    public string Tfm { get; private set; }
+    public string? Tfm { get; private set; }
     
-    public string Rid { get; private set; }
+    public string? Rid { get; private set; }
     
-    public string AvaloniaMainPackageVersion { get; private set; }
+    public string? AvaloniaMainPackageVersion { get; private set; }
     
-    public string OSDescription { get; private set; }
+    public string? OSDescription { get; private set; }
     
     public Architecture ProcessorArchitecture { get; private set; }
     
     //Additions for V2 
-    public string DeviceUniqueId { get; private set; } 
+    public string? DeviceUniqueId { get; private set; } 
     
     public AccelerateTier AccelerateTier { get; private set; } 
     
-    public string OperatingSystem { get; private set; }
+    public string? OperatingSystem { get; private set; }
 
     public static byte[] EncodeMany(IList<TelemetryPayload> payloads)
     {
@@ -86,8 +87,8 @@ public class TelemetryPayload
         writer.Write(RecordId.ToByteArray());
         writer.Write(TimeStamp.ToUnixTimeMilliseconds());
         writer.Write(Machine.ToByteArray());
-        writer.Write(ProjectRootHash);
-        writer.Write(ProjectHash);
+        writer.Write(ProjectRootHash ?? string.Empty);
+        writer.Write(ProjectHash ?? string.Empty);
         writer.Write(string.Empty);
         writer.Write(string.Empty);
         writer.Write(string.Empty);
@@ -97,13 +98,13 @@ public class TelemetryPayload
         writer.Write(Tfm ?? string.Empty);
         writer.Write(Rid ?? string.Empty);
         writer.Write(AvaloniaMainPackageVersion  ?? string.Empty);
-        writer.Write(OSDescription);
+        writer.Write(OSDescription ?? string.Empty);
         writer.Write((byte)ProcessorArchitecture);
         
         //New for v2
-        writer.Write(DeviceUniqueId); 
+        writer.Write(DeviceUniqueId ?? string.Empty); 
         writer.Write((byte)AccelerateTier);
-        writer.Write(OperatingSystem);
+        writer.Write(OperatingSystem ?? string.Empty);
         return m.ToArray();
     }
 
@@ -205,7 +206,7 @@ public class TelemetryPayload
         return result;
     }
     
-    internal static string HashProperty(string value)
+    internal static string HashProperty(string? value)
     {
         if (string.IsNullOrEmpty(value))
             return string.Empty;
@@ -232,7 +233,7 @@ public class TelemetryPayload
         }
         else if (environment.Contains("VSCODE_CWD") || 
                  environment.Contains("VSCODE_PID") ||
-                 (environment.Contains("TERM_PROGRAM") && environment["TERM_PROGRAM"].ToString() == "vscode"))
+                 (environment.Contains("TERM_PROGRAM") && environment["TERM_PROGRAM"]?.ToString() == "vscode"))
         {
             ide = Ide.VsCode;
         }
@@ -244,7 +245,7 @@ public class TelemetryPayload
         {
             ide = Ide.Rider;
         }
-        else if (environment.Contains("PWD") && environment["PWD"].ToString().Contains("Rider"))
+        else if (environment.Contains("PWD") && environment["PWD"]?.ToString()?.Contains("Rider") == true)
         {
             ide = Ide.Rider;
         }

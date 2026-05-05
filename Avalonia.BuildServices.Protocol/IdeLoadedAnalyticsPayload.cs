@@ -23,27 +23,15 @@ public class IdeLoadedAnalyticsPayload
 
     public Ide Ide { get; private set; }
 
-    public string Edition { get; private set; }
+    public string? Edition { get; private set; }
 
-    public string Version { get; private set; }
+    public string? Version { get; private set; }
 
-    public string ExtensionVersion { get; private set; }
+    public string? ExtensionVersion { get; private set; }
 
     public int DesignerLaunchCount { get; private set; }
 
     public AccelerateTier AccelerateTier { get; private set; }
-
-    public string Continent { get; set; }
-
-    public string Country { get; set; }
-
-    public string City { get; set; }
-
-    public double Latitude { get; set; }
-
-    public double Longitude { get; set; }
-
-    public string IpAddress { get; set; }
 
     public static IdeLoadedAnalyticsPayload Initialise(Guid machine, string vsEdition, string vsVersion)
     {

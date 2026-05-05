@@ -92,7 +92,7 @@ public class ContinuousIntegrationHelper
             return CiProvider.Semaphore;
         
         // CodeShip
-        if (environment.Contains("CI_NAME") && environment["CI_NAME"].ToString() == "codeship")
+        if (environment.Contains("CI_NAME") && environment["CI_NAME"]?.ToString() == "codeship")
             return CiProvider.CodeShip;
         
         // Codefresh - Kubernetes focused
@@ -128,8 +128,8 @@ public class ContinuousIntegrationHelper
         
         // Last-resort portable CI flag used by many platforms
         if (environment.Contains("CI") && 
-            (environment["CI"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase) || 
-             environment["CI"].ToString() == "1"))
+            (environment["CI"]?.ToString()?.Equals("true", StringComparison.OrdinalIgnoreCase) == true || 
+             environment["CI"]?.ToString() == "1"))
             return CiProvider.Generic;
         
         return CiProvider.None;
