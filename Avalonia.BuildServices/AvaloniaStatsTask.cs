@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using static Avalonia.Telemetry.BuildServicesPaths;
 
@@ -141,24 +139,6 @@ public class AvaloniaStatsTask : ITask
         }
     }
 
-    private Guid UniqueIdentifier
-    {
-        get
-        {
-            if (_uniqueIdentifier == null)
-            {
-                if (!File.Exists(IdPath))
-                {
-                    File.WriteAllBytes(IdPath, Guid.NewGuid().ToByteArray());
-                }
-
-                _uniqueIdentifier = new Guid(File.ReadAllBytes(IdPath));
-            }
-
-            return _uniqueIdentifier.Value;
-        }
-    }
-
     private TelemetryPayload RunStats(AccelerateTier accelerateTier)
     {
         if (!Directory.Exists(AppDataFolder))
@@ -166,7 +146,8 @@ public class AvaloniaStatsTask : ITask
             Directory.CreateDirectory(AppDataFolder);
         }
 
-        return TelemetryPayload.Initialise(UniqueIdentifier, ProjectName, TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType, accelerateTier);
+        return TelemetryPayload.Initialise(UniqueIdentifierProvider.GetOrCreateIdentifier(), ProjectName,
+            TargetFramework, RuntimeIdentifier, AvaloniaPackageVersion, OutputType, accelerateTier);
     }
 
     public IBuildEngine BuildEngine { get; set; }
