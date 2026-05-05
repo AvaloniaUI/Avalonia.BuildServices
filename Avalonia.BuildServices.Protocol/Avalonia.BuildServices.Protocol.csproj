@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Version>11.3.2</Version>
+        <LangVersion>latest</LangVersion>
+        <IsPackable>true</IsPackable>
+
+        <Authors>Avalonia Team</Authors>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Copyright>Copyright 2023-$([System.DateTime]::Now.ToString(`yyyy`)) &#169; The AvaloniaUI Project</Copyright>
+        <PackageProjectUrl>https://avaloniaui.net</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/AvaloniaUI/Avalonia.BuildServices</RepositoryUrl>
+        <PackageIcon>Icon.png</PackageIcon>
+        <PackageDescription>Wire-format contract types for Avalonia.BuildServices telemetry. Used by the Avalonia.BuildServices MSBuild task and any companion tooling that needs to read or write Avalonia build telemetry payloads.</PackageDescription>
+        <PackageTags>avalonia;avaloniaui;telemetry;protocol;contract</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)..\build\Icon.png" Pack="true" Visible="false" PackagePath=""/>
+        <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" Visible="false" PackagePath=""/>
+    </ItemGroup>
+
+</Project>

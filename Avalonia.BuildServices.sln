@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.BuildServices", "BuildTask\Avalonia.BuildServices.csproj", "{819EE622-6E05-411C-8185-4D5B484693A4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.BuildServices", "Avalonia.BuildServices\Avalonia.BuildServices.csproj", "{819EE622-6E05-411C-8185-4D5B484693A4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{E97477D5-048A-42E7-A294-F3065549DD40}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.BuildServices.Collector", "Avalonia.BuildServices.Collector\Avalonia.BuildServices.Collector.csproj", "{B393F300-8272-402D-8132-B206758EFA81}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryInspector", "TelemetryInspector\TelemetryInspector.csproj", "{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.BuildServices.Protocol", "Avalonia.BuildServices.Protocol\Avalonia.BuildServices.Protocol.csproj", "{4F3E2A11-7C5B-4D39-9C2E-9B1C2A6F7E10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,5 +36,9 @@ Global
 		{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52872FB7-D580-4DB6-B1B0-80E2F92A9C64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F3E2A11-7C5B-4D39-9C2E-9B1C2A6F7E10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F3E2A11-7C5B-4D39-9C2E-9B1C2A6F7E10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F3E2A11-7C5B-4D39-9C2E-9B1C2A6F7E10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F3E2A11-7C5B-4D39-9C2E-9B1C2A6F7E10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

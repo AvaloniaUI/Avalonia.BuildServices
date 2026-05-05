@@ -33,6 +33,11 @@
         <None Include="$(MSBuildThisFileDirectory)..\build\Icon.png" Pack="true" Visible="false" PackagePath=""/>
         <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" Visible="false" PackagePath=""/>
 
+        <!-- Protocol types are merged into Avalonia.BuildServices.dll via ILRepack /internalize.
+             PrivateAssets="all" ensures the package is not declared as a NuGet dependency of the
+             task package; the build also deletes the loose Protocol DLL after the merge. -->
+        <ProjectReference Include="../Avalonia.BuildServices.Protocol/Avalonia.BuildServices.Protocol.csproj" PrivateAssets="all" />
+
         <ProjectReference Include="../Avalonia.BuildServices.Collector/Avalonia.BuildServices.Collector.csproj" ReferenceOutputAssembly="false" Private="false" SetTargetFramework="TargetFramework=net5.0" IncludeAssets="none" ExcludeAssets="all" PrivateAssets="all"/>
     </ItemGroup>
 

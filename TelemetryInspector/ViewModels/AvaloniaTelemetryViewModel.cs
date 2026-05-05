@@ -25,13 +25,13 @@ public partial class AvaloniaTelemetryViewModel : ViewModelBase
     /// </summary>
     private void FetchBuildTelemetry()
     {
-        if (Directory.Exists(Common.AppDataFolder))
+        if (Directory.Exists(BuildServicesPaths.AppDataFolder))
         {
             var tempPayloads = new List<TelemetryPayload>();
             
-            foreach (var dataFile in Directory.EnumerateFiles(Common.AppDataFolder))
+            foreach (var dataFile in Directory.EnumerateFiles(BuildServicesPaths.AppDataFolder))
             {
-                if (Path.GetFileName(dataFile).StartsWith(Common.RECORD_FILE_PREFIX))
+                if (Path.GetFileName(dataFile).StartsWith(BuildServicesPaths.RECORD_FILE_PREFIX))
                 {
                     try
                     {

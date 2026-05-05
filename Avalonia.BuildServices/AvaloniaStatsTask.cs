@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
-using static Avalonia.Telemetry.Common;
+using static Avalonia.Telemetry.BuildServicesPaths;
 
 namespace Avalonia.Telemetry;
 
@@ -29,6 +29,8 @@ public class AvaloniaStatsTask : ITask
 
     public bool Execute()
     {
+        Logger.Configure(Path.Combine(AppDataFolder, "buildtasks.log"));
+
         var accelerateTier = AccelerateTierHelper.ResolveAccelerateTierFromLicenseTickets(LicenseKeys?.Select(k => k.ItemSpec));
         var hasOptedOut = HasOptedOut();
 

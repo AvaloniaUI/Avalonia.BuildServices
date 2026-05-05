@@ -27,8 +27,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="../BuildTask/Common.cs" />
-        <Compile Include="../BuildTask/TelemetryPayload.cs" />
-        <Compile Include="../BuildTask/ContinuousIntegrationHelper.cs" />
+        <ProjectReference Include="../Avalonia.BuildServices.Protocol/Avalonia.BuildServices.Protocol.csproj" />
     </ItemGroup>
 </Project>

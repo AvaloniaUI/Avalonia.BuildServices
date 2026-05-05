@@ -92,9 +92,9 @@ public class Collector
         {
             var payloads = new List<TelemetryPayload>();
 
-            foreach (var dataFile in Directory.EnumerateFiles(Common.AppDataFolder).ToList())
+            foreach (var dataFile in Directory.EnumerateFiles(BuildServicesPaths.AppDataFolder).ToList())
             {
-                if (Path.GetFileName(dataFile).StartsWith(Common.RECORD_FILE_PREFIX))
+                if (Path.GetFileName(dataFile).StartsWith(BuildServicesPaths.RECORD_FILE_PREFIX))
                 {
                     try
                     {
@@ -135,7 +135,7 @@ public class Collector
 
                     foreach (var payload in payloads)
                     {
-                        var file = Path.Combine(Common.AppDataFolder, Common.RECORD_FILE_PREFIX + payload.RecordId);
+                        var file = Path.Combine(BuildServicesPaths.AppDataFolder, BuildServicesPaths.RECORD_FILE_PREFIX + payload.RecordId);
                         
                         File.Delete(file);
                     }
