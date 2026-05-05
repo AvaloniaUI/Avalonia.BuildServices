@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices.Protocol;
 
 /// <summary>
 /// Avalonia Build event telemetry payload.

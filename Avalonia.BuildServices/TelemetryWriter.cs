@@ -1,7 +1,8 @@
 using System.IO;
-using static Avalonia.Telemetry.BuildServicesPaths;
+using Avalonia.BuildServices.Protocol;
+using static Avalonia.BuildServices.Protocol.BuildServicesPaths;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices;
 
 public class TelemetryWriter
 {

@@ -9,8 +9,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.BuildServices.Protocol;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices.Collector;
 
 public class Collector
 {

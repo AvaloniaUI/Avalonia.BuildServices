@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices.Protocol;
 
 /// <summary>
 /// Canonical hashing primitive used across Avalonia telemetry surfaces.

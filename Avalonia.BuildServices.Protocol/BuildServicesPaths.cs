@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices.Protocol;
 
 public static class BuildServicesPaths
 {

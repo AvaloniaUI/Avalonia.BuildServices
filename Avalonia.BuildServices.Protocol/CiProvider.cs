@@ -1,4 +1,4 @@
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices.Protocol;
 
 public enum CiProvider
 {

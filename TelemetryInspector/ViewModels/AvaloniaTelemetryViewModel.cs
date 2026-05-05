@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using Avalonia.Telemetry;
+using Avalonia.BuildServices.Protocol;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace TelemetryInspector.ViewModels;

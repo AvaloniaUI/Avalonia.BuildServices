@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices.Protocol;
 
 /// <summary>
 /// Avalonia IDE loaded event telemetry payload. 

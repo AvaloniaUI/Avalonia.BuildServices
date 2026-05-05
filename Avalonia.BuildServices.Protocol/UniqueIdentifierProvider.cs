@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices.Protocol;
 
 /// <summary>
 /// Provides a reusable mechanism to retrieve or generate a persistent <see cref="Guid"/> 

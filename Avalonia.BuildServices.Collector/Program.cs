@@ -1,4 +1,6 @@
-﻿using Avalonia.Telemetry;
+﻿using Avalonia.BuildServices.Protocol;
+
+namespace Avalonia.BuildServices.Collector;
 
 public static class Program
 {

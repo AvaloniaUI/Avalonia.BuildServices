@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices;
 
 internal static class Logger
 {

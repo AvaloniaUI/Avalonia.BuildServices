@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Avalonia.BuildServices;
+using Avalonia.BuildServices.Protocol;
 using Microsoft.Build.Framework;
-using static Avalonia.Telemetry.BuildServicesPaths;
+using static Avalonia.BuildServices.Protocol.BuildServicesPaths;
 
 namespace Avalonia.Telemetry;
 

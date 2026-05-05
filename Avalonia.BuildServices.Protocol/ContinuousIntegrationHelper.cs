@@ -1,6 +1,6 @@
 using System;
 
-namespace Avalonia.Telemetry;
+namespace Avalonia.BuildServices.Protocol;
 
 public class ContinuousIntegrationHelper
 {
