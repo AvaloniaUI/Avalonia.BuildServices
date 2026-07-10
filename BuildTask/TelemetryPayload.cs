@@ -154,6 +154,7 @@ public class TelemetryPayload
 
             if (version is 2)
             {
+                reader.ReadString(); // Skip DeviceUniqueId.
                 result.AccelerateTier = (AccelerateTier)reader.ReadByte();
                 result.OperatingSystem = reader.ReadString();
             }
