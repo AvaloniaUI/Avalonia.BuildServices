@@ -124,7 +124,20 @@ class Build : NukeBuild
         var purl = $"pkg:nuget/AvaloniaUI.Licensing@{licensingVersion}";
 
         var doc = JsonNode.Parse(File.ReadAllText(sbomPath))!.AsObject();
-        doc["components"]!.AsArray().Add(new JsonObject
+        var components = doc["components"]!.AsArray();
+
+        // If the shared generator ever starts emitting the component itself (e.g. the reference
+        // moves off PrivateAssets="All" and licensing lands back in the shipped nuspec, where the
+        // generator's cross-check re-adds it), this manual step is obsolete - skip it rather than
+        // emit a duplicate bom-ref.
+        if (components.Any(c => c?["name"]?.GetValue<string>() == "AvaloniaUI.Licensing"))
+        {
+            Log.Warning("SBOM: AvaloniaUI.Licensing is already present in the generated SBOM - " +
+                        "the manual AddMergedLicensingComponent step is obsolete and can be removed.");
+            return;
+        }
+
+        components.Add(new JsonObject
         {
             ["type"] = "library",
             ["bom-ref"] = purl,
