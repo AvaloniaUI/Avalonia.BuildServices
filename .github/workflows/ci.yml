@@ -15,6 +15,7 @@ jobs:
       uses: actions/checkout@v5
       with:
         fetch-depth: 0
+        submodules: true
 
     - name: Install .NET
       uses: actions/setup-dotnet@v5
@@ -29,3 +30,10 @@ jobs:
       with:
         name: Nuget package
         path: ./artifacts/packages/*.nupkg
+
+    # Standalone copy of the per-package SBOM that CreateSbom also embeds into the .nupkg.
+    - name: Upload SBOM artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: ./artifacts/sbom/*.cdx.json
