@@ -15,7 +15,7 @@ Minimal, anonymised information (hashed with SHA256 where applicable):
 * Output type, target framework, runtime identifier
 * Avalonia version in use
 * Accelerate license tier (indie, business, enterprise...)
-* Anonymous machine identifier (GUID), and machine name (hashed)
+* Anonymous machine identifier (GUID)
 * Development environment (Visual Studio, Rider, VS Code, CLI)
 * Operating system version and architecture
 * CI environment detection (Azure DevOps, GitHub Actions, etc.)

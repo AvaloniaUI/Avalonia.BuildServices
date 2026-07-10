@@ -63,8 +63,8 @@ public class TelemetryPayload
     public string OSDescription { get; private set; }
     
     public Architecture ProcessorArchitecture { get; private set; }
-    
-    //Additions for V2 
+
+    [Obsolete("Use Machine GUID instead")]
     public string DeviceUniqueId { get; private set; } 
     
     public AccelerateTier AccelerateTier { get; private set; } 
@@ -150,16 +150,16 @@ public class TelemetryPayload
             result.AvaloniaMainPackageVersion = reader.ReadString();
             result.OSDescription = reader.ReadString();
             result.ProcessorArchitecture = (Architecture)reader.ReadByte();
+            result.DeviceUniqueId = "";
 
             if (version is 2)
             {
-                result.DeviceUniqueId = reader.ReadString();
+                reader.ReadString(); // Skip DeviceUniqueId.
                 result.AccelerateTier = (AccelerateTier)reader.ReadByte();
                 result.OperatingSystem = reader.ReadString();
             }
             else if (version is 1)
             {
-                result.DeviceUniqueId = "";
                 result.OperatingSystem = "Unknown";
             }
         }
@@ -219,7 +219,7 @@ public class TelemetryPayload
         result.ProjectHash = HashProperty(projectName);
 
         // New for V2
-        result.DeviceUniqueId = HashProperty($"{Environment.MachineName}-{Environment.UserName}-{Environment.OSVersion.Platform}");
+        result.DeviceUniqueId = "";
         result.AccelerateTier = accelerateTier;
         result.OperatingSystem = GetOperatingSystem();
         return result;
