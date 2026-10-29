@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Source compiled into the task, the collector and the inspector. Kept as
+     source rather than a library so the task still ships as one assembly:
+     a second one beside it could clash with another package version's in a
+     reused MSBuild node. -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>f49248e3-340a-40ba-8802-c9e2b840375b</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Avalonia.Telemetry</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AiAgent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BuildConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BuildDetails.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BuildEnvironment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BuildSettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CiProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ContinuousIntegrationHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DisplayServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HostMachine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Ide.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IdeTerminal.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LinuxDesktop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ProductTier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ProjectLanguage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TelemetryEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TelemetryPayload.cs" />
+  </ItemGroup>
+</Project>

@@ -21,6 +21,11 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
+    # Before the package is built: a build task that can fail a customer's
+    # build must not be packed.
+    - name: Run tests
+      run: dotnet test tests/Avalonia.BuildServices.Tests/Avalonia.BuildServices.Tests.csproj
+
     - name: Run Nuke
       run: dotnet run --project build/_build.csproj
 

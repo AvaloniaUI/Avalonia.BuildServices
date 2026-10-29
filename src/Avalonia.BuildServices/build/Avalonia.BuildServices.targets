@@ -1,0 +1,42 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <!-- This file and the task assembly are one contract. A parameter may be added, renamed
+         or removed here only in a build whose task assembly has a new AssemblyVersion (see
+         the project file): MSBuild reuses an already loaded assembly of the same identity,
+         and a parameter it does not know fails the build before the task runs. -->
+    <UsingTask TaskName="AvaloniaStatsTask"
+               AssemblyFile="$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Avalonia.BuildServices.dll"/>
+
+    <Target Name="AvaloniaStats"
+            BeforeTargets="CoreCompile"
+            Condition="'$(DesignTimeBuild)' != 'true' And '$(UsedAvaloniaProducts)' != '' And '$(TargetFramework)' != ''">
+        <!-- Execute never fails or throws. ContinueOnError covers what is left: an exception
+             MSBuild raises around the task becomes a warning instead of a failed build. -->
+        <AvaloniaStatsTask
+                ContinueOnError="true"
+                ProjectName="$(MSBuildProjectName)"
+                TargetFramework="$(TargetFramework)"
+                RuntimeIdentifier="$(RuntimeIdentifier)"
+                AvaloniaPackageVersion="$(AvaloniaMainPackageVersion)"
+                OutputType="$(OutputType)"
+                BuildingInsideVisualStudio="$(BuildingInsideVisualStudio)"
+                ContinuousIntegrationBuild="$(ContinuousIntegrationBuild)"
+                ProjectLicenseTier="$(AvaloniaUIResolvedSubscription)"
+                ProjectLicenseFeatures="@(AvaloniaUIResolvedLicenseFeature)"
+                LicensedProducts="@(AvaloniaUILicenseKeyProduct)"
+                XpfVersion="$(XpfSdkVersion)"
+                PublishAot="$(PublishAot)"
+                PublishTrimmed="$(PublishTrimmed)"
+                TrimMode="$(TrimMode)"
+                RunAOTCompilation="$(RunAOTCompilation)"
+                AndroidEnableProfiledAot="$(AndroidEnableProfiledAot)"
+                TargetPlatformIdentifier="$(TargetPlatformIdentifier)"
+                ProjectExtension="$(MSBuildProjectExtension)"
+                Configuration="$(Configuration)"
+                IsPublishing="$(_IsPublishing)"
+                UseCompiledBindingsByDefault="$(AvaloniaUseCompiledBindingsByDefault)"
+                EnableXamlCompilation="$(EnableAvaloniaXamlCompilation)"
+                NameGeneratorEnabled="$(AvaloniaNameGeneratorIsEnabled)"
+        />
+    </Target>
+</Project>
