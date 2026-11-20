@@ -7,9 +7,11 @@
     <UsingTask TaskName="AvaloniaStatsTask"
                AssemblyFile="$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Avalonia.BuildServices.dll"/>
 
+    <!-- One record per real build of an Avalonia project: skips design-time builds, projects
+         without Avalonia, multi-targeting outer builds and WPF/XPF temporary (_wpftmp) projects. -->
     <Target Name="AvaloniaStats"
             BeforeTargets="CoreCompile"
-            Condition="'$(DesignTimeBuild)' != 'true' And '$(UsedAvaloniaProducts)' != '' And '$(TargetFramework)' != ''">
+            Condition="'$(DesignTimeBuild)' != 'true' And '$(UsedAvaloniaProducts)' != '' And '$(TargetFramework)' != '' And !$(MSBuildProjectName.EndsWith('_wpftmp'))">
         <!-- Execute never fails or throws. ContinueOnError covers what is left: an exception
              MSBuild raises around the task becomes a warning instead of a failed build. -->
         <AvaloniaStatsTask
