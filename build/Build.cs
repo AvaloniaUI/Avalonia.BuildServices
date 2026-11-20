@@ -20,11 +20,11 @@ class Build : NukeBuild
     readonly AbsolutePath Output = RootDirectory / "artifacts" / "packages";
 
     [NuGetPackage("dotnet-ilrepack", "ILRepackTool.dll", Framework = "net8.0")] readonly Tool IlRepackTool;
-    [NuGetPackage("CycloneDX", "CycloneDX.dll", Framework = "net9.0")] readonly Tool CycloneDx;
+    [NuGetPackage("CycloneDX", "CycloneDX.dll", Framework = "net10.0")] readonly Tool CycloneDx;
 
     AbsolutePath BuildServicesProject => RootDirectory / "src" / "Avalonia.BuildServices" / "Avalonia.BuildServices.csproj";
 
-    public static int Main () => Execute<Build>(x => x.CreatePackage);
+    public static int Main () => Execute<Build>(x => x.CreateNugetPackages);
 
     Target OutputParameters => _ => _
         .Executes(() =>
@@ -40,8 +40,18 @@ class Build : NukeBuild
             Output.CreateOrCleanDirectory();
         });
 
+    Target RunTests => _ => _
+        .DependsOn(OutputParameters)
+        .Executes(() =>
+        {
+            DotNetTasks.DotNetTest(settings => settings
+                .SetProjectFile(RootDirectory / "tests" / "Avalonia.BuildServices.Tests" / "Avalonia.BuildServices.Tests.csproj")
+                .SetConfiguration(Configuration));
+        });
+
     Target RunBuild => _ => _
         .DependsOn(OutputParameters)
+        .DependsOn(RunTests)
         .Executes(() =>
         {
             DotNetTasks.DotNetBuild(settings => settings
@@ -63,9 +73,10 @@ class Build : NukeBuild
                 outputDir);
         });
 
-    Target CreatePackage => _ => _
+    Target CreateNugetPackages => _ => _
         .DependsOn(OutputParameters)
         .DependsOn(CleanArtifacts)
+        .DependsOn(RunTests)
         .DependsOn(RunBuild)
         .DependsOn(MergeLicensing)
         .Executes(() =>
@@ -83,11 +94,11 @@ class Build : NukeBuild
 
     // Generates a CycloneDX SBOM (EU Cyber Resilience Act evidence) for the shipped package and
     // embeds it into the .nupkg at _manifest/cyclonedx/bom.cdx.json. TriggeredBy makes the default
-    // CreatePackage target produce it with no build-command changes; it must run after
+    // CreateNugetPackages target produce it with no build-command changes; it must run after
     // RefAssemblyGenerator so the recorded hashes are those of the binaries actually shipped.
     Target CreateSbom => _ => _
-        .DependsOn(CreatePackage)
-        .TriggeredBy(CreatePackage)
+        .DependsOn(CreateNugetPackages)
+        .TriggeredBy(CreateNugetPackages)
         .Executes(() =>
         {
             var pkg = Output.GlobFiles("*.nupkg").Single();

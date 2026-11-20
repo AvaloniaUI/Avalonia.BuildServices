@@ -25,11 +25,12 @@
       "type": "string",
       "enum": [
         "CleanArtifacts",
-        "CreatePackage",
+        "CreateNugetPackages",
         "CreateSbom",
         "MergeLicensing",
         "OutputParameters",
-        "RunBuild"
+        "RunBuild",
+        "RunTests"
       ]
     },
     "Verbosity": {

@@ -1,0 +1,17 @@
+name: Nightly
+
+on:
+  push:
+    branches: [ "main", "release/*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  nightly:
+    uses: AvaloniaUI/build-common/.github/workflows/library-cicd.yml@main
+    with:
+      artifact_glob: Avalonia.BuildServices.*.nupkg
+      nuget_feed: ${{ vars.NIGHTLY_FEED_UPLOAD_URL }}
+    secrets:
+      nuget_api_key: ${{secrets.NIGHTLY_FEED_API_KEY}}
