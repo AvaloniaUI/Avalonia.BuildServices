@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -179,6 +180,11 @@ class Build : NukeBuild
     string GetVersion()
     {
         var xdoc = XDocument.Load(BuildServicesProject);
-        return xdoc.Descendants().First(x => x.Name.LocalName == "Version").Value;
+
+        return VersionResolver
+            .GetGitHubVersion(
+                baseVersionNumber: Version.Parse(xdoc.Descendants().First(x => x.Name.LocalName == "Version").Value),
+                isPackingToLocalCache: false)
+            .ToString();
     }
 }
