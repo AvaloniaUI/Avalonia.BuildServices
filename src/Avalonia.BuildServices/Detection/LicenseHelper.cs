@@ -72,8 +72,8 @@ internal static class LicenseHelper
 
             var ticketVerdict = Judge(ticketTier, products);
 
-            // A ticket is a licence even when this package cannot name its tier
-            // (XPF's product:xpf-<tier> entries): then one without the flag.
+            // A ticket is a licence even when this package cannot name its tier:
+            // then one without the flag.
             if (ticketVerdict == Verdict.None)
             {
                 ticketVerdict = Verdict.Required;
@@ -263,13 +263,26 @@ internal static class LicenseHelper
     }
 
     // "indie", "Business", ... as the portal writes them into a key's
-    // product:<tier> entry and as AvaloniaLicenseSubscription.ToString() emits
-    // them for $(AvaloniaUIResolvedSubscription). Anything else, including XPF's
-    // product:xpf-<tier> names and numeric strings, is no tier.
-    private static ProductTier ParseTier(string? name) =>
-        !string.IsNullOrEmpty(name)
-        && !char.IsDigit(name![0])
-        && Enum.TryParse<ProductTier>(name, ignoreCase: true, out var tier)
+    // product:<tier> entry (product:xpf-<tier> for XPF) and as
+    // AvaloniaLicenseSubscription.ToString() emits them for
+    // $(AvaloniaUIResolvedSubscription). Anything else, including numeric
+    // strings, is no tier.
+    private static ProductTier ParseTier(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return ProductTier.None;
+        }
+
+        if (name!.StartsWith("xpf-", StringComparison.Ordinal))
+        {
+            name = name.Substring("xpf-".Length);
+        }
+
+        return name.Length > 0
+               && !char.IsDigit(name[0])
+               && Enum.TryParse<ProductTier>(name, ignoreCase: true, out var tier)
             ? tier
             : ProductTier.None;
+    }
 }

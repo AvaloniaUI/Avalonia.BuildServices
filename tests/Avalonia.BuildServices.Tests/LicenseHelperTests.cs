@@ -63,7 +63,8 @@ public sealed class LicenseHelperTests : IDisposable
     [Theory]
     [InlineData("3")]
     [InlineData("Platinum")]
-    [InlineData("xpf-business")]
+    [InlineData("xpf-")]
+    [InlineData("xpf-3")]
     [InlineData("  ")]
     public void A_tier_nobody_issues_is_no_tier(string tier) =>
         Assert.Equal((ProductTier.None, false), Resolve(tier));
@@ -125,10 +126,31 @@ public sealed class LicenseHelperTests : IDisposable
     public void A_trial_outranks_community() =>
         Assert.Equal((ProductTier.Trial, true), ResolveWithTickets("Community", ["product:trial"]));
 
-    // XPF's product:xpf-<tier> entries name no tier this package knows.
+    // XPF keys, as the portal composes them: product:xpf-<tier>, and the opt-out
+    // flag on every key but a trial's.
+    private static string[] XpfTicket(string tier, params string[] flags) =>
+        ["xpf", "xpf-api-shim", "xpf-winforms", "product:xpf-" + tier, "Avalonia.Controls.Media", "avalonia-parcel", .. flags];
+
+    [Theory]
+    [InlineData("indie", ProductTier.Indie)]
+    [InlineData("business", ProductTier.Business)]
+    public void A_paid_xpf_ticket_may_opt_out(string tier, ProductTier expected) =>
+        Assert.Equal((expected, false), ResolveWithTickets(null, XpfTicket(tier, OptOut)));
+
     [Fact]
-    public void A_ticket_of_a_tier_nobody_here_can_name_requires_telemetry() =>
-        Assert.Equal((ProductTier.None, true), ResolveWithTickets(null, ["product:xpf-business"]));
+    public void An_xpf_trial_ticket_requires_telemetry() =>
+        Assert.Equal((ProductTier.Trial, true), ResolveWithTickets(null, XpfTicket("trial")));
+
+    // An older XPF key carries no flags: a paid tier gets the benefit of the doubt.
+    [Fact]
+    public void A_paid_xpf_ticket_without_flags_may_opt_out() =>
+        Assert.Equal((ProductTier.Business, false), ResolveWithTickets(null, XpfTicket("business")));
+
+    [Theory]
+    [InlineData("product:xpf-platinum")]
+    [InlineData("product:platinum")]
+    public void A_ticket_of_a_tier_nobody_here_can_name_requires_telemetry(string product) =>
+        Assert.Equal((ProductTier.None, true), ResolveWithTickets(null, [product]));
 
     [Fact]
     public void A_ticket_store_that_is_not_there_is_no_licence()
