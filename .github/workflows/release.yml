@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - 'release/**'
+
+jobs:
+
+  build:
+    uses: AvaloniaUI/build-common/.github/workflows/library-cicd.yml@main
+    with:
+      validate_release_branch: true
+      artifact_name: packages
+      push_package: 'false'
+
+  # We don't push via library-cicd.yml, because it's not possible to pass environment with environment-specific secrets.
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: ./nupkgs
+      - name: Avalonia release
+        run: dotnet nuget push './nupkgs/Avalonia.BuildServices.*.nupkg' --api-key '${{ secrets.RELEASE_MANAGER_API_KEY }}' --source '${{ vars.RELEASE_MANAGER_UPLOAD_URL }}'
