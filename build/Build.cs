@@ -103,8 +103,7 @@ class Build : NukeBuild
                 sbomOutput,
                 GetVersion(),
                 "Avalonia.BuildServices",
-                new[] { "Avalonia.BuildServices", "Avalonia.BuildServices.Collector" },
-                projectSearchDirs: new[] { "BuildTask", "Avalonia.BuildServices.Collector" });
+                new[] { "Avalonia.BuildServices", "Avalonia.BuildServices.Collector" });
 
             AddMergedLicensingComponent(sbomOutput / $"Avalonia.BuildServices.{GetVersion()}.cdx.json", pkg);
         });
