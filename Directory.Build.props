@@ -1,0 +1,8 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Every project builds without warnings, so a new one fails the build. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

@@ -16,7 +16,7 @@ class Build : NukeBuild
 
     [NuGetPackage("dotnet-ilrepack", "ILRepackTool.dll", Framework = "net8.0")] readonly Tool IlRepackTool;
 
-    AbsolutePath BuildServicesProject => RootDirectory / "BuildTask" / "Avalonia.BuildServices.csproj";
+    AbsolutePath BuildServicesProject => RootDirectory / "src" / "Avalonia.BuildServices" / "Avalonia.BuildServices.csproj";
 
     public static int Main () => Execute<Build>(x => x.CreatePackage);
 
@@ -77,7 +77,7 @@ class Build : NukeBuild
 
     string GetVersion()
     {
-        var xdoc = XDocument.Load(RootDirectory / "BuildTask/Avalonia.BuildServices.csproj");
+        var xdoc = XDocument.Load(BuildServicesProject);
         return xdoc.Descendants().First(x => x.Name.LocalName == "Version").Value;
     }
 }

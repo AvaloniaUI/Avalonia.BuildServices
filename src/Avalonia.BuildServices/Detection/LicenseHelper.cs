@@ -1,0 +1,288 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using AvaloniaUI.Licensing;
+using AvaloniaUI.Licensing.Ticket;
+
+namespace Avalonia.Telemetry;
+
+internal static class LicenseHelper
+{
+    // The portal decides who may opt out of telemetry, with the result provided in
+    // the licence itself: every paid, non-trial key carries feature:telemetry-optout,
+    // and Community and trial keys do not. This reads that flag where it can.
+    //
+    // The project's flags are AvaloniaUI.Licensing's ResolvedFeatures, which lists
+    // only feature:* entries, so a Community or trial key yields none, and packages
+    // before the one that emits them yield none for any key. For those two tiers
+    // the tier name stands in for the flag: the portal never gives them one. A
+    // paid tier that carries no flags at all is not guessed at: an old package
+    // cannot tell a key that carries the flag from one that does not, a library
+    // key carries no flags either, and forcing telemetry on a paid licence would
+    // be the worse mistake. Such a licence may opt out.
+    //
+    // The machine's tickets count for every project built on it, whichever key
+    // the project itself names. That is meant: a ticket is a licence this user
+    // holds, and the opt-out goes with the user. A ticket is read by the same
+    // rule as the project's key, from its product:<tier> entry and its feature:*
+    // entries. So one licence that may opt out, the project's or a ticket's,
+    // frees the build, and the opt-out is refused only when every licence found
+    // requires telemetry (README, "Opting Out").
+    //
+    // A licence key set in one of LicenseKeyVariables is a tooling key (MCP/CLI),
+    // and is also counted.
+    public static (ProductTier Tier, bool TelemetryRequired) Resolve(string? projectTier, IEnumerable<string> projectFeatures,
+        BuildEnvironment environment, string? ticketsPath = null) =>
+        Resolve(projectTier, projectFeatures, MachineLicenceProducts(ticketsPath, EnvironmentKeys(environment)));
+
+    internal static readonly string[] LicenseKeyVariables = ["AVALONIA_TOOLS_LICENSE_KEY", "ACCELERATE_LICENSE_KEY"];
+
+    private const string OnlineKeyPrefix = "avln_on_key:v1:";
+    private const string OfflineKeyPrefix = "avln_off_key:v1:";
+
+    private static string[] EnvironmentKeys(BuildEnvironment environment) => LicenseKeyVariables
+        .Select(environment.Get)
+        .Where(key => !string.IsNullOrWhiteSpace(key))
+        .Select(key => key!.Trim())
+        .Distinct(StringComparer.Ordinal)
+        .ToArray();
+
+    // The decision apart from the ticket store, for the tests: each ticket is
+    // the product names it carries.
+    internal static (ProductTier Tier, bool TelemetryRequired) Resolve(string? projectTier, IEnumerable<string> projectFeatures, IEnumerable<string[]> tickets)
+    {
+        var tier = ParseTier(projectTier);
+        var verdict = Judge(tier, projectFeatures);
+
+        foreach (var products in tickets)
+        {
+            var ticketTier = ProductTier.None;
+            foreach (var product in products)
+            {
+                if (product.StartsWith("product:", StringComparison.Ordinal))
+                {
+                    var productTier = ParseTier(product.Substring("product:".Length));
+                    if (Rank(productTier) > Rank(ticketTier))
+                    {
+                        ticketTier = productTier;
+                    }
+                }
+            }
+
+            var ticketVerdict = Judge(ticketTier, products);
+
+            // A ticket is a licence even when this package cannot name its tier:
+            // then one without the flag.
+            if (ticketVerdict == Verdict.None)
+            {
+                ticketVerdict = Verdict.Required;
+            }
+
+            if (ticketVerdict > verdict)
+            {
+                verdict = ticketVerdict;
+            }
+
+            if (Rank(ticketTier) > Rank(tier))
+            {
+                tier = ticketTier;
+            }
+        }
+
+        return (tier, verdict == Verdict.Required);
+    }
+
+    private static int Rank(ProductTier tier) => tier switch
+    {
+        ProductTier.Community => 1,
+        ProductTier.Trial => 2,
+        ProductTier.Indie => 3,
+        ProductTier.Business => 4,
+        ProductTier.Enterprise => 5,
+        _ => 0,
+    };
+
+    // What one licence says about the opt-out, in the order they override each
+    // other: one licence that may opt out frees the build.
+    private enum Verdict
+    {
+        // No licence: a project that names neither a tier nor a flag.
+        None,
+
+        // Telemetry stays on, whatever the variable says.
+        Required,
+
+        // The variable is honoured.
+        MayOptOut,
+    }
+
+    private static Verdict Judge(ProductTier tier, IEnumerable<string> products)
+    {
+        var flagged = false;
+        foreach (var product in products)
+        {
+            if (product == AvaloniaLicenseProduct.TelemetryOptOut)
+            {
+                return Verdict.MayOptOut;
+            }
+
+            flagged |= product.StartsWith("feature:", StringComparison.Ordinal);
+        }
+
+        if (flagged)
+        {
+            // The portal wrote flags into this key and left this one out.
+            return Verdict.Required;
+        }
+
+        return tier switch
+        {
+            ProductTier.Community or ProductTier.Trial => Verdict.Required,
+            ProductTier.None => Verdict.None,
+            // A paid tier whose flags are unknown: the benefit of the doubt.
+            _ => Verdict.MayOptOut,
+        };
+    }
+
+    private static readonly long TicketCacheLifetime = Stopwatch.Frequency * 30;
+
+    private static volatile MachineLicences? _machineLicences;
+
+    // The machine's tickets and environment keys, read at most once per
+    // TicketCacheLifetime. Reading them opens every ticket file and checks every
+    // signature, and an MSBuild node asks once per project and target framework
+    // for an answer that is the same for all of them. The cost: a node that is
+    // still running sees a licence activated a moment ago that much later. A
+    // build whose environment names other keys reads again at once.
+    //
+    // A static rather than MSBuild's registered task objects: older task hosts
+    // answer that callback with an error, and an error fails the build.
+    private static string[][] MachineLicenceProducts(string? ticketsPath, string[] environmentKeys)
+    {
+        // A store named by the caller is a test's, and is read every time.
+        if (ticketsPath is not null)
+        {
+            return LoadLicenceProducts(ticketsPath, environmentKeys).ToArray();
+        }
+
+        var licences = _machineLicences;
+
+        if (licences is null
+            || Stopwatch.GetTimestamp() - licences.ReadAt > TicketCacheLifetime
+            || !licences.EnvironmentKeys.SequenceEqual(environmentKeys, StringComparer.Ordinal))
+        {
+            // Builds running side by side may both read here. Each gets a whole
+            // answer and the later one stays.
+            licences = new MachineLicences(LoadLicenceProducts(null, environmentKeys).ToArray(), environmentKeys);
+            _machineLicences = licences;
+        }
+
+        return licences.Products;
+    }
+
+    // Never changed once built, so it can be handed between threads as it is.
+    private sealed class MachineLicences(string[][] products, string[] environmentKeys)
+    {
+        public string[][] Products { get; } = products;
+
+        public string[] EnvironmentKeys { get; } = environmentKeys;
+
+        public long ReadAt { get; } = Stopwatch.GetTimestamp();
+    }
+
+    // The product names of every unexpired, correctly signed ticket on this
+    // machine and key in the environment. One that cannot be read is no
+    // licence, never a build failure.
+    private static IEnumerable<string[]> LoadLicenceProducts(string? ticketsPath, string[] environmentKeys)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var keys = LoadTicketKeys(ticketsPath)
+            .Concat(environmentKeys.Select(key => SdkKey(key, ticketsPath)).OfType<string>());
+
+        foreach (var key in keys)
+        {
+            string[]? products = null;
+            try
+            {
+                var licence = AvaloniaLicenseInformation.Load(key);
+                if (licence.ExpiresAt is not { } expiresAt || expiresAt > now)
+                {
+                    products = licence.Products.Select(p => p.Name).OfType<string>().ToArray();
+                }
+            }
+            catch
+            {
+                // Corrupt, tampered with, or signed for another key
+            }
+
+            if (products != null)
+            {
+                yield return products;
+            }
+        }
+    }
+
+    private static string? SdkKey(string key, string? ticketsPath)
+    {
+        try
+        {
+            if (key.StartsWith(OfflineKeyPrefix, StringComparison.Ordinal))
+            {
+                var pair = key.Substring(OfflineKeyPrefix.Length).Split(':');
+                return pair.Length == 2 ? pair[0] : null;
+            }
+
+            if (key.StartsWith(OnlineKeyPrefix, StringComparison.Ordinal))
+            {
+                return new GenericTicketStore(ticketsPath).TryLoadLibraryTicket(key)?.SdkKey;
+            }
+        }
+        catch
+        {
+            // A store that cannot be read
+        }
+
+        return null;
+    }
+
+    private static string[] LoadTicketKeys(string? ticketsPath)
+    {
+        try
+        {
+            var store = new GenericTicketStore(ticketsPath);
+            return store.LoadAllAppTickets().Select(t => t.LicenseKey)
+                .Concat(store.LoadAllLibraryTickets().Select(t => t.RuntimeKey))
+                .OfType<string>()
+                .ToArray();
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    // "indie", "Business", ... as the portal writes them into a key's
+    // product:<tier> entry (product:xpf-<tier> for XPF) and as
+    // AvaloniaLicenseSubscription.ToString() emits them for
+    // $(AvaloniaUIResolvedSubscription). Anything else, including numeric
+    // strings, is no tier.
+    private static ProductTier ParseTier(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return ProductTier.None;
+        }
+
+        if (name!.StartsWith("xpf-", StringComparison.Ordinal))
+        {
+            name = name.Substring("xpf-".Length);
+        }
+
+        return name.Length > 0
+               && !char.IsDigit(name[0])
+               && Enum.TryParse<ProductTier>(name, ignoreCase: true, out var tier)
+            ? tier
+            : ProductTier.None;
+    }
+}

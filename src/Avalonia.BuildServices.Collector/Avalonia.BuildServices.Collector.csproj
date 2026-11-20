@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+        <RootNamespace>Avalonia.Telemetry</RootNamespace>
+        <DefineConstants>$(DefineConstants);AVALONIAUI_COLLECTOR</DefineConstants>
+        <!-- Target olders runtime -->
+        <!-- We also need "rollForward": "Major", defined in runtimeconfig.json in this repo -->
+        <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    </PropertyGroup>
+
+    <Import Project="../Avalonia.BuildServices.Shared/Avalonia.BuildServices.Shared.projitems" Label="Shared" />
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Avalonia.BuildServices.Tests" />
+    </ItemGroup>
+</Project>

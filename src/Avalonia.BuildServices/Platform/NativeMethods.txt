@@ -1,0 +1,6 @@
+﻿CreateProcess
+CloseHandle
+GetSystemPowerStatus
+RegGetValue
+HKEY_LOCAL_MACHINE
+GlobalMemoryStatusEx
