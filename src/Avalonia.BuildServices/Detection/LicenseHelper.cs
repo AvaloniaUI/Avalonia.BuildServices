@@ -47,7 +47,7 @@ internal static class LicenseHelper
                 if (product.StartsWith("product:", StringComparison.Ordinal))
                 {
                     var productTier = ParseTier(product.Substring("product:".Length));
-                    if (productTier > ticketTier)
+                    if (Rank(productTier) > Rank(ticketTier))
                     {
                         ticketTier = productTier;
                     }
@@ -68,7 +68,7 @@ internal static class LicenseHelper
                 verdict = ticketVerdict;
             }
 
-            if (ticketTier > tier)
+            if (Rank(ticketTier) > Rank(tier))
             {
                 tier = ticketTier;
             }
@@ -76,6 +76,16 @@ internal static class LicenseHelper
 
         return (tier, verdict == Verdict.Required);
     }
+
+    private static int Rank(ProductTier tier) => tier switch
+    {
+        ProductTier.Community => 1,
+        ProductTier.Trial => 2,
+        ProductTier.Indie => 3,
+        ProductTier.Business => 4,
+        ProductTier.Enterprise => 5,
+        _ => 0,
+    };
 
     // What one licence says about the opt-out, in the order they override each
     // other: one licence that may opt out frees the build.

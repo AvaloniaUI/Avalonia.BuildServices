@@ -101,6 +101,23 @@ public sealed class LicenseHelperTests : IDisposable
     public void A_community_key_with_a_paid_ticket_may_opt_out() =>
         Assert.Equal((ProductTier.Enterprise, false), ResolveWithTickets("Community", ["product:enterprise", OptOut]));
 
+    // ProductTier's byte order puts Trial above Indie; a paid tier still wins.
+    [Fact]
+    public void A_paid_key_outranks_a_trial_ticket() =>
+        Assert.Equal((ProductTier.Indie, false), ResolveWithTickets("Indie", ["product:trial"]));
+
+    [Fact]
+    public void A_paid_ticket_outranks_a_trial_key() =>
+        Assert.Equal((ProductTier.Indie, false), ResolveWithTickets("Trial", ["product:indie"]));
+
+    [Fact]
+    public void A_paid_tier_outranks_a_trial_tier_in_one_ticket() =>
+        Assert.Equal((ProductTier.Indie, false), ResolveWithTickets(null, ["product:indie", "product:trial"]));
+
+    [Fact]
+    public void A_trial_outranks_community() =>
+        Assert.Equal((ProductTier.Trial, true), ResolveWithTickets("Community", ["product:trial"]));
+
     // XPF's product:xpf-<tier> entries name no tier this package knows.
     [Fact]
     public void A_ticket_of_a_tier_nobody_here_can_name_requires_telemetry() =>
