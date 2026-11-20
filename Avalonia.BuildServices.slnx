@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/build/">
+    <Project Path="build/_build.csproj">
+      <Build Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/copilot-instructions.md" />
+    <File Path=".github/workflows/nightly.yml" />
+    <File Path=".github/workflows/release.yml" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Avalonia.BuildServices.Collector/Avalonia.BuildServices.Collector.csproj" />
+    <Project Path="src/Avalonia.BuildServices.Shared/Avalonia.BuildServices.Shared.shproj" />
+    <Project Path="src/Avalonia.BuildServices/Avalonia.BuildServices.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Avalonia.BuildServices.Tests/Avalonia.BuildServices.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Avalonia.BuildServices.Inspector/Avalonia.BuildServices.Inspector.csproj" />
+  </Folder>
+</Solution>

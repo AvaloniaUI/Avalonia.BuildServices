@@ -48,7 +48,13 @@
         <None Include="$(MSBuildThisFileDirectory)..\..\build\Icon.png" Pack="true" Visible="false" PackagePath=""/>
         <None Include="$(MSBuildThisFileDirectory)..\..\README.md" Pack="true" Visible="false" PackagePath=""/>
 
-        <ProjectReference Include="../Avalonia.BuildServices.Collector/Avalonia.BuildServices.Collector.csproj" ReferenceOutputAssembly="false" Private="false" SetTargetFramework="TargetFramework=net5.0" IncludeAssets="none" ExcludeAssets="all" PrivateAssets="all"/>
+        <ProjectReference Include="../Avalonia.BuildServices.Collector/Avalonia.BuildServices.Collector.csproj"
+                          ReferenceOutputAssembly="false"
+                          Private="false"
+                          SkipGetTargetFrameworkProperties="true"
+                          IncludeAssets="none"
+                          ExcludeAssets="all"
+                          PrivateAssets="all"/>
     </ItemGroup>
 
     <ItemGroup>
