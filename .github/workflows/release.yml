@@ -25,4 +25,4 @@ jobs:
           name: packages
           path: ./nupkgs
       - name: Avalonia release
-        run: dotnet nuget push './nupkgs/Avalonia.BuildServices.*.nupkg' --api-key '${{ secrets.RELEASE_MANAGER_API_KEY }}' --source '${{vars.RELEASE_MANAGER_UPLOAD_URL}}'
+        run: dotnet nuget push './nupkgs/Avalonia.BuildServices.*.nupkg' --api-key '${{ secrets.RELEASE_MANAGER_API_KEY }}' --source '${{ vars.RELEASE_MANAGER_UPLOAD_URL }}'
