@@ -21,7 +21,9 @@ namespace Avalonia.Telemetry;
 //  - ProjectName is hashed. TargetFramework, RuntimeIdentifier, OutputType,
 //    AvaloniaPackageVersion and XpfVersion are kept as they are.
 //  - ProjectLicenseTier and ProjectLicenseFeatures, with the machine's licence
-//    tickets, become one tier name and one decision: may this build opt out.
+//    tickets and any licence key in AVALONIA_TOOLS_LICENSE_KEY or
+//    ACCELERATE_LICENSE_KEY, become one tier name and one decision: may this
+//    build opt out.
 //    LicensedProducts is kept as a list of package names.
 //  - PublishAot, PublishTrimmed, TrimMode, RunAOTCompilation,
 //    AndroidEnableProfiledAot and TargetPlatformIdentifier become two booleans,
@@ -149,7 +151,7 @@ public class AvaloniaStatsTask : ITask
         var environment = BuildEnvironment.Capture();
 
         var (productTier, telemetryRequired) = LicenseHelper.Resolve(ProjectLicenseTier,
-            ProjectLicenseFeatures?.Select(f => f.ItemSpec) ?? [], TicketsPath);
+            ProjectLicenseFeatures?.Select(f => f.ItemSpec) ?? [], environment, TicketsPath);
 
         if (telemetryRequired)
         {

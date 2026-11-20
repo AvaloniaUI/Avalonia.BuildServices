@@ -29,8 +29,24 @@ internal static class LicenseHelper
     // entries. So one licence that may opt out, the project's or a ticket's,
     // frees the build, and the opt-out is refused only when every licence found
     // requires telemetry (README, "Opting Out").
-    public static (ProductTier Tier, bool TelemetryRequired) Resolve(string? projectTier, IEnumerable<string> projectFeatures, string? ticketsPath = null) =>
-        Resolve(projectTier, projectFeatures, TicketProducts(ticketsPath));
+    //
+    // A licence key set in one of LicenseKeyVariables is a tooling key (MCP/CLI),
+    // and is also counted.
+    public static (ProductTier Tier, bool TelemetryRequired) Resolve(string? projectTier, IEnumerable<string> projectFeatures,
+        BuildEnvironment environment, string? ticketsPath = null) =>
+        Resolve(projectTier, projectFeatures, MachineLicenceProducts(ticketsPath, EnvironmentKeys(environment)));
+
+    internal static readonly string[] LicenseKeyVariables = ["AVALONIA_TOOLS_LICENSE_KEY", "ACCELERATE_LICENSE_KEY"];
+
+    private const string OnlineKeyPrefix = "avln_on_key:v1:";
+    private const string OfflineKeyPrefix = "avln_off_key:v1:";
+
+    private static string[] EnvironmentKeys(BuildEnvironment environment) => LicenseKeyVariables
+        .Select(environment.Get)
+        .Where(key => !string.IsNullOrWhiteSpace(key))
+        .Select(key => key!.Trim())
+        .Distinct(StringComparer.Ordinal)
+        .ToArray();
 
     // The decision apart from the ticket store, for the tests: each ticket is
     // the product names it carries.
@@ -131,51 +147,60 @@ internal static class LicenseHelper
 
     private static readonly long TicketCacheLifetime = Stopwatch.Frequency * 30;
 
-    private static volatile MachineTickets? _machineTickets;
+    private static volatile MachineLicences? _machineLicences;
 
-    // The machine's tickets, read at most once per TicketCacheLifetime. Reading
-    // them opens every ticket file and checks its signature, and an MSBuild node
-    // asks once per project and target framework for an answer that is the same
-    // for all of them. The cost: a node that is still running sees a licence
-    // activated a moment ago that much later.
+    // The machine's tickets and environment keys, read at most once per
+    // TicketCacheLifetime. Reading them opens every ticket file and checks every
+    // signature, and an MSBuild node asks once per project and target framework
+    // for an answer that is the same for all of them. The cost: a node that is
+    // still running sees a licence activated a moment ago that much later. A
+    // build whose environment names other keys reads again at once.
     //
     // A static rather than MSBuild's registered task objects: older task hosts
     // answer that callback with an error, and an error fails the build.
-    private static string[][] TicketProducts(string? ticketsPath)
+    private static string[][] MachineLicenceProducts(string? ticketsPath, string[] environmentKeys)
     {
         // A store named by the caller is a test's, and is read every time.
         if (ticketsPath is not null)
         {
-            return LoadTicketProducts(ticketsPath).ToArray();
+            return LoadLicenceProducts(ticketsPath, environmentKeys).ToArray();
         }
 
-        var tickets = _machineTickets;
+        var licences = _machineLicences;
 
-        if (tickets is null || Stopwatch.GetTimestamp() - tickets.ReadAt > TicketCacheLifetime)
+        if (licences is null
+            || Stopwatch.GetTimestamp() - licences.ReadAt > TicketCacheLifetime
+            || !licences.EnvironmentKeys.SequenceEqual(environmentKeys, StringComparer.Ordinal))
         {
             // Builds running side by side may both read here. Each gets a whole
             // answer and the later one stays.
-            tickets = new MachineTickets(LoadTicketProducts(null).ToArray());
-            _machineTickets = tickets;
+            licences = new MachineLicences(LoadLicenceProducts(null, environmentKeys).ToArray(), environmentKeys);
+            _machineLicences = licences;
         }
 
-        return tickets.Products;
+        return licences.Products;
     }
 
     // Never changed once built, so it can be handed between threads as it is.
-    private sealed class MachineTickets(string[][] products)
+    private sealed class MachineLicences(string[][] products, string[] environmentKeys)
     {
         public string[][] Products { get; } = products;
+
+        public string[] EnvironmentKeys { get; } = environmentKeys;
 
         public long ReadAt { get; } = Stopwatch.GetTimestamp();
     }
 
     // The product names of every unexpired, correctly signed ticket on this
-    // machine. A ticket that cannot be read is no licence, never a build failure.
-    private static IEnumerable<string[]> LoadTicketProducts(string? ticketsPath)
+    // machine and key in the environment. One that cannot be read is no
+    // licence, never a build failure.
+    private static IEnumerable<string[]> LoadLicenceProducts(string? ticketsPath, string[] environmentKeys)
     {
         var now = DateTimeOffset.UtcNow;
-        foreach (var key in LoadTicketKeys(ticketsPath))
+        var keys = LoadTicketKeys(ticketsPath)
+            .Concat(environmentKeys.Select(key => SdkKey(key, ticketsPath)).OfType<string>());
+
+        foreach (var key in keys)
         {
             string[]? products = null;
             try
@@ -196,6 +221,29 @@ internal static class LicenseHelper
                 yield return products;
             }
         }
+    }
+
+    private static string? SdkKey(string key, string? ticketsPath)
+    {
+        try
+        {
+            if (key.StartsWith(OfflineKeyPrefix, StringComparison.Ordinal))
+            {
+                var pair = key.Substring(OfflineKeyPrefix.Length).Split(':');
+                return pair.Length == 2 ? pair[0] : null;
+            }
+
+            if (key.StartsWith(OnlineKeyPrefix, StringComparison.Ordinal))
+            {
+                return new GenericTicketStore(ticketsPath).TryLoadLibraryTicket(key)?.SdkKey;
+            }
+        }
+        catch
+        {
+            // A store that cannot be read
+        }
+
+        return null;
     }
 
     private static string[] LoadTicketKeys(string? ticketsPath)

@@ -6,13 +6,14 @@ using System.Linq;
 namespace Avalonia.Telemetry.Tests;
 
 // The task reads the opt-out from the real environment of this process. A
-// developer who has opted out, or who runs the tests under NCrunch, would
-// otherwise get different results from everyone else. This clears both
-// variables, however they are spelt, sets what the test asks for, and puts
-// everything back afterwards.
+// developer who has opted out, keeps a licence key in the environment, or runs
+// the tests under NCrunch, would otherwise get different results from everyone
+// else. This clears those variables, however they are spelt, sets what the
+// test asks for, and puts everything back afterwards.
 internal sealed class EnvironmentScope : IDisposable
 {
-    private static readonly string[] Cleared = ["AVALONIA_TELEMETRY_OPTOUT", "NCrunch"];
+    private static readonly string[] Cleared =
+        ["AVALONIA_TELEMETRY_OPTOUT", "NCrunch", .. LicenseHelper.LicenseKeyVariables];
 
     private readonly Dictionary<string, string?> _before = new(StringComparer.Ordinal);
 

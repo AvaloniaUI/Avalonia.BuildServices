@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AvaloniaUI.Licensing;
 using Xunit;
 
@@ -18,7 +20,12 @@ public sealed class LicenseHelperTests : IDisposable
     public void Dispose() => _folders.Dispose();
 
     private (ProductTier Tier, bool TelemetryRequired) Resolve(string? tier, params string[] features) =>
-        LicenseHelper.Resolve(tier, features, _folders.Tickets);
+        LicenseHelper.Resolve(tier, features, NoVariables, _folders.Tickets);
+
+    private static readonly BuildEnvironment NoVariables = new([]);
+
+    private static BuildEnvironment Variables(params (string Name, string Value)[] variables) =>
+        new(variables.Select(v => new KeyValuePair<string, string>(v.Name, v.Value)));
 
     [Theory]
     [InlineData(null)]
@@ -128,9 +135,32 @@ public sealed class LicenseHelperTests : IDisposable
     {
         var missing = Path.Combine(_folders.Root, "no-such-folder");
 
-        Assert.Equal((ProductTier.Community, true), LicenseHelper.Resolve("Community", [], missing));
-        Assert.Equal((ProductTier.None, false), LicenseHelper.Resolve(null, [], missing));
+        Assert.Equal((ProductTier.Community, true), LicenseHelper.Resolve("Community", [], NoVariables, missing));
+        Assert.Equal((ProductTier.None, false), LicenseHelper.Resolve(null, [], NoVariables, missing));
     }
+
+    // A signed key cannot be made here either. These are the keys in the
+    // environment that are no licence, and must not fail or change anything.
+    [Theory]
+    [InlineData("AVALONIA_TOOLS_LICENSE_KEY", "not a key")]
+    [InlineData("ACCELERATE_LICENSE_KEY", "not a key")]
+    [InlineData("accelerate_license_key", "avln_off_key:v1:only-one-part")]
+    [InlineData("ACCELERATE_LICENSE_KEY", "avln_off_key:v1:not-signed:runtime")]
+    [InlineData("ACCELERATE_LICENSE_KEY", "avln_off_key:v1:a:b:c")]
+    [InlineData("AVALONIA_TOOLS_LICENSE_KEY", "avln_on_key:v1:never-fetched")]
+    [InlineData("AVALONIA_TOOLS_LICENSE_KEY", "   ")]
+    public void A_key_in_the_environment_that_cannot_be_read_is_no_licence(string name, string value)
+    {
+        var environment = Variables((name, value));
+
+        Assert.Equal((ProductTier.None, false), LicenseHelper.Resolve(null, [], environment, _folders.Tickets));
+        Assert.Equal((ProductTier.Community, true), LicenseHelper.Resolve("Community", [], environment, _folders.Tickets));
+    }
+
+    [Fact]
+    public void A_key_in_the_environment_that_cannot_be_read_does_not_hide_one_that_can() =>
+        Assert.Equal((ProductTier.Indie, false), LicenseHelper.Resolve("Indie", [],
+            Variables(("ACCELERATE_LICENSE_KEY", "avln_off_key:v1:not-signed:runtime")), _folders.Tickets));
 
     [Fact]
     public void A_ticket_store_full_of_rubbish_is_no_licence()
